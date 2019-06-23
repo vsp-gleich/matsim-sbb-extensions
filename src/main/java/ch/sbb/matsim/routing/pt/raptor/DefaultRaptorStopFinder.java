@@ -121,6 +121,8 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 			if (mode.equals(TransportMode.walk) || mode.equals(TransportMode.transit_walk)) {
 				// yyyyyy Das passt nicht zusammen mit meinen Annahmen.  "walk" kann durchaus ein "network walk" sein; das wuerde hier dann
 				// uebergebuegelt werden.  Ist diese Abfrage denn noetig?  kai, jun'19
+				// Habe gerade mal "walk" an den entscheidenden Stellen durch "bike" ersetzt; damit funktioniert es dann wie vorgesehen.  Das
+				// impliziert erstmal, dass "walk" hier problematisch ist.  Ob die Weglassung woanders Probleme macht, weiss ich nicht.  kai, jun'19
 				overrideMode = direction == Direction.ACCESS ? TransportMode.access_walk : TransportMode.egress_walk;
 			}
 			String linkIdAttribute = paramset.getLinkIdAttribute();
