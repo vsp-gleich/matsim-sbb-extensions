@@ -119,6 +119,8 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 			String mode = paramset.getMode();
 			String overrideMode = null;
 			if (mode.equals(TransportMode.walk) || mode.equals(TransportMode.transit_walk)) {
+				// yyyyyy Das passt nicht zusammen mit meinen Annahmen.  "walk" kann durchaus ein "network walk" sein; das wuerde hier dann
+				// uebergebuegelt werden.  Ist diese Abfrage denn noetig?  kai, jun'19
 				overrideMode = direction == Direction.ACCESS ? TransportMode.access_walk : TransportMode.egress_walk;
 			}
 			String linkIdAttribute = paramset.getLinkIdAttribute();

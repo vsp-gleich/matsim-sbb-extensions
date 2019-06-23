@@ -775,6 +775,13 @@ public class SwissRailRaptorCore {
             pes.clear();
         }
 
+	    // yyyyyy I am having the following situation:
+	    // * assume there is only one drt link.  This happens when the pt trip is outside the service area, and then both the starting and the ending
+	    // location are mapped to the same link.
+	    // * In consequence, the trip becomes "access_walk_to_drt"---"egress_walk_to_drt" (*).  However, the cost of that is set to infty here ... with the
+	    // consequence that the raptor returns a "pure transit walk" later.
+	    // I thought that you said that it would directly return (*).  It would (I think) also be easier to debug.  kai, jun'19
+
         RaptorRoute raptorRoute = new RaptorRoute(fromFacility, toFacility, arrivalCost);
         double time = departureTime;
         TransitStopFacility fromStop = null;

@@ -74,6 +74,8 @@ public class SwissRailRaptor implements TransitRouter {
         RaptorRoute directWalk = createDirectWalk(fromFacility, toFacility, departureTime, person, parameters);
 
         if (foundRoute == null || directWalk.getTotalCosts() < foundRoute.getTotalCosts()) {
+		  log.warn( "foundRouteCost=" + foundRoute.getTotalCosts() ) ;
+		  log.warn( "directWalkCost=" + directWalk.getTotalCosts() ) ;
             foundRoute = directWalk;
         }
         List<Leg> legs = RaptorUtils.convertRouteToLegs(foundRoute);
