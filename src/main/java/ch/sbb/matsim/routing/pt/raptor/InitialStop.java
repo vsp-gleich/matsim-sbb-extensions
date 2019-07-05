@@ -40,4 +40,9 @@ public class InitialStop {
         this.mode = null;
         this.planElements = planElements;
     }
+
+	@Override
+	public String toString() {
+		return "[ stopId=" + stop.getId() + " | accessCost=" + accessCost + " | mode=" + mode + " ]" ;
+	}
 }
