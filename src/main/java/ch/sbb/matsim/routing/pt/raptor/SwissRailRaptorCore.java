@@ -7,8 +7,10 @@ package ch.sbb.matsim.routing.pt.raptor;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RRoute;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RRouteStop;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorData.RTransfer;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
+import org.matsim.api.core.v01.population.Leg;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.transitSchedule.api.TransitLine;
@@ -32,6 +34,7 @@ import java.util.Map;
  * @author mrieser / SBB
  */
 public class SwissRailRaptorCore {
+	private static final Logger log = Logger.getLogger( SwissRailRaptorCore.class ) ;
 
     private final SwissRailRaptorData data;
 
@@ -83,38 +86,60 @@ public class SwissRailRaptorCore {
         reset();
 
         Map<TransitStopFacility, InitialStop> destinationStops = new HashMap<>();
+
+	    // go through all egressStops; check if already in destinationStops; if so, check if current cost is smaller; if so, then replace.  This can
+	    // presumably happen when the same stop can be reached at lower cost by a different egress mode. (*)
         for (InitialStop egressStop : egressStops) {
             InitialStop alternative = destinationStops.get(egressStop.stop);
             if (alternative == null || egressStop.accessCost < alternative.accessCost) {
                 destinationStops.put(egressStop.stop, egressStop);
             }
         }
+        // ??:
         for (InitialStop egressStop : destinationStops.values()) {
             int[] routeStopIndices = this.data.routeStopsPerStopFacility.get(egressStop.stop);
             if (routeStopIndices != null) {
                 for (int routeStopIndex : routeStopIndices) {
-                    this.destinationRouteStopIndices.set(routeStopIndex);
-                    this.egressCostsPerRouteStop[routeStopIndex] = egressStop.accessCost;
+                    this.destinationRouteStopIndices.set(routeStopIndex); // set bit at index position to true
+                    this.egressCostsPerRouteStop[routeStopIndex] = egressStop.accessCost; // set egress costs from given stop
+			    // presumably, the routeStops are the stops for the different routes that stop at the same stopFacility
                 }
             }
         }
 
+        // same as (*) for access stops:
         Map<TransitStopFacility, InitialStop> initialStops = new HashMap<>();
         for (InitialStop accessStop : accessStops) {
             InitialStop alternative = initialStops.get(accessStop.stop);
             if (alternative == null || accessStop.accessCost < alternative.accessCost) {
-                initialStops.put(accessStop.stop, accessStop);
+			initialStops.put(accessStop.stop, accessStop);
             }
         }
+
+	    for( InitialStop initialStop : initialStops.values() ){
+		    log.warn( "initialStop=" + initialStop ) ;
+	    }
+	    for( InitialStop destStop : destinationStops.values() ){
+		    log.warn( "destinationStop=" + destStop ) ;
+	    }
+
         boolean hasIntermodalAccess = false;
+	    // go through initial stops ...
         for (InitialStop stop : initialStops.values()) {
+        	// ... retrieve all route stops ...
             int[] routeStopIndices = this.data.routeStopsPerStopFacility.get(stop.stop);
+            // ... go through them ...
             for (int routeStopIndex : routeStopIndices) {
+            	// ... set arrival time and arrival cost accordingly ...
                 double arrivalTime = depTime + stop.accessTime;
                 double arrivalCost = stop.accessCost;
 
                 RRouteStop routeStop = this.data.routeStops[routeStopIndex];
+
                 boolean isIntermodalAccess = stop.planElements != null;
+			// (intermodal access is if there are planElements that describe the intermodal access, which depends, I think, on which constructor was
+			// called (since also non-intermodal access has a leg). kai, jul'19
+
                 if (!isIntermodalAccess && routeStop.routeStop == routeStop.route.getStops().get(routeStop.route.getStops().size() - 1)) {
                     // this is the last stop of a route, doesn't make sense to start here
                     // if it's intermodal, we still start here, as we might transfer to another close-by but non-intermodal stop.
@@ -178,11 +203,11 @@ public class SwissRailRaptorCore {
             }
         }
 
-        if (hasIntermodalAccess) {
-            // allow transfering from the initial stop to another one if we have intermodal access,
-            // as not all stops might be intermodal
-            handleTransfers(true, parameters);
-        }
+//        if (hasIntermodalAccess) {
+//            // allow transfering from the initial stop to another one if we have intermodal access,
+//            // as not all stops might be intermodal
+//            handleTransfers(true, parameters);
+//        }
 
         int allowedTransfersLeft = maxTransfersAfterFirstArrival;
         // the main loop
@@ -193,8 +218,18 @@ public class SwissRailRaptorCore {
             // second stage: process routes
             exploreRoutes(parameters);
 
-            PathElement leastCostPath = findLeastCostArrival(destinationStops);
-            if (leastCostPath != null) {
+		  PathElement leastCostPath = findLeastCostArrival(destinationStops);
+
+		  log.warn("") ;
+		  log.warn("leastCostPath with nTransfers=" + k + ":") ;
+		  List<Leg> legs = RaptorUtils.convertRouteToLegs( createRaptorRoute( fromFacility, toFacility, leastCostPath, depTime ) );
+		  for( Leg leg : legs ){
+			  log.warn( "leg=" + leg ) ;
+		  }
+		  log.warn("") ;
+
+
+		  if (leastCostPath != null) {
                 if (allowedTransfersLeft == 0) {
                     break;
                 }
@@ -202,6 +237,7 @@ public class SwissRailRaptorCore {
             }
 
             if (this.improvedStops.isEmpty()) {
+            	log.warn( "improvedStops isEmpty; leaving loop ...") ;
                 break;
             }
 
@@ -210,6 +246,7 @@ public class SwissRailRaptorCore {
 
             // final stage: check stop criterion
             if (this.improvedRouteStopIndices.isEmpty()) {
+            	log.warn( "improvedRouteStopIndices isEmpty; leaving loop ...") ;
                 break;
             }
         }
