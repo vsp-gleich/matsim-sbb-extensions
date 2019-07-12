@@ -83,6 +83,8 @@ public class SwissRailRaptorCore {
         final int maxTransfers = 20; // sensible defaults, could be made configurable if there is a need for it.
         final int maxTransfersAfterFirstArrival = 2;
 
+        log.warn("Calc route from x=" + fromFacility.getCoord().getX() + " y=" + fromFacility.getCoord().getY() + " dep=" + depTime + " to x=" + toFacility.getCoord().getX() + " y=" + toFacility.getCoord().getY() );
+        
         reset();
 
         Map<TransitStopFacility, InitialStop> destinationStops = new HashMap<>();
@@ -117,10 +119,10 @@ public class SwissRailRaptorCore {
         }
 
 	    for( InitialStop initialStop : initialStops.values() ){
-		    log.warn( "initialStop=" + initialStop ) ;
+		    log.debug( "initialStop=" + initialStop ) ;
 	    }
 	    for( InitialStop destStop : destinationStops.values() ){
-		    log.warn( "destinationStop=" + destStop ) ;
+		    log.debug( "destinationStop=" + destStop ) ;
 	    }
 
         boolean hasIntermodalAccess = false;
