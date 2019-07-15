@@ -8,6 +8,8 @@ import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ReflectiveConfigGroup;
 import org.matsim.core.utils.collections.CollectionUtils;
 
+import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder.Direction;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -361,6 +363,7 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
         private static final String TYPE = "intermodalAccessEgress";
 
         private static final String PARAM_MODE = "mode";
+        private static final String PARAM_DIRECTIONS = "directions";
         private static final String PARAM_RADIUS = "radius";
         private static final String PARAM_LINKID_ATTRIBUTE = "linkIdAttribute";
         private static final String PARAM_PERSON_FILTER_ATTRIBUTE = "personFilterAttribute";
@@ -369,6 +372,7 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
         private static final String PARAM_STOP_FILTER_VALUE = "stopFilterValue";
 
         private String mode;
+        private Set<Direction> directions;
         private double radius;
         private String linkIdAttribute;
         private String personFilterAttribute;
@@ -378,6 +382,10 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
 
         public IntermodalAccessEgressParameterSet() {
             super(TYPE);
+            // set defaults for backward compatibility
+            directions = new HashSet<>();
+            directions.add(Direction.ACCESS);
+            directions.add(Direction.EGRESS);
         }
 
         @StringGetter(PARAM_MODE)
@@ -388,6 +396,34 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
         @StringSetter(PARAM_MODE)
         public void setMode(String mode) {
             this.mode = mode;
+        }
+        
+        @StringGetter(PARAM_DIRECTIONS)
+        public String getDirectionsAsString() {
+        	Set<String> strSet = new HashSet<>();
+        	for (Direction direction: this.directions) {
+        		strSet.add(direction.toString());
+        	}
+            return CollectionUtils.setToString(strSet);
+        }
+
+        public Set<Direction> getDirections() {
+            return this.directions;
+        }
+
+        @StringSetter(PARAM_DIRECTIONS)
+        public void setDirections(String directions) {
+        	Set<String> strSet = CollectionUtils.stringToSet(directions);
+        	Set<Direction> enumSet = new HashSet<>();
+        	for (String str: strSet) {
+        		enumSet.add(Direction.valueOf(str));
+        	}
+            this.setDirections(enumSet);
+        }
+
+        public void setDirections(Set<Direction> directions) {
+            this.directions.clear();
+            this.directions.addAll(directions);
         }
 
         @StringGetter(PARAM_RADIUS)

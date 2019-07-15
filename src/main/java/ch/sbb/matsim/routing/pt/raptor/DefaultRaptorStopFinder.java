@@ -115,6 +115,10 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 		String personId = person.getId().toString();
 		List<InitialStop> initialStops = new ArrayList<>();
 		for (IntermodalAccessEgressParameterSet paramset : srrCfg.getIntermodalAccessEgressParameterSets()) {
+			if ( !paramset.getDirections().contains(direction) ) {
+				// this access/egress mode is not allowed for the direction we are looking at. Skip it.
+				continue;
+			}
 			double radius = paramset.getRadius();
 			String mode = paramset.getMode();
 			String overrideMode = null;
@@ -123,7 +127,8 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 				// uebergebuegelt werden.  Ist diese Abfrage denn noetig?  kai, jun'19
 				// Habe gerade mal "walk" an den entscheidenden Stellen durch "bike" ersetzt; damit funktioniert es dann wie vorgesehen.  Das
 				// impliziert erstmal, dass "walk" hier problematisch ist.  Ob die Weglassung woanders Probleme macht, weiss ich nicht.  kai, jun'19
-				overrideMode = direction == Direction.ACCESS ? TransportMode.access_walk : TransportMode.egress_walk;
+				overrideMode = direction == Direction.ACCESS ? TransportMode.access_walk : TransportMode.egress_walk; 
+				// verweist auf eine matsim version, wo TransportMode.access_walk noch "access_walk" und nicht "non_network_walk" ist. gl jul'19
 			}
 			String linkIdAttribute = paramset.getLinkIdAttribute();
 			String personFilterAttribute = paramset.getPersonFilterAttribute();
