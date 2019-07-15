@@ -11,6 +11,15 @@
 	<version>11.3-SNAPSHOT</version>
 	<name>MATSim-Extensions by SBB</name>
 	<description></description>
+	
+	<properties>
+		<!--weekly "release" (recommended):-->
+		<!-- TODO: change to week 29 or newer when available -->
+		<matsim.version>12.0-2019w27-SNAPSHOT</matsim.version>
+
+		<!--development head:-->
+		<!--<matsim.version>12.0-SNAPSHOT</matsim.version> -->
+	</properties>
 
 	<repositories>
 		<repository>
@@ -36,13 +45,13 @@
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>11.0</version>
+			<version>${matsim.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>11.0</version>
+			<version>${matsim.version}</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
 			<type>test-jar</type>

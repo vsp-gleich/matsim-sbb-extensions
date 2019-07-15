@@ -477,7 +477,7 @@ public class SwissRailRaptorTest {
             Assert.assertEquals(100, legs.get(4).getTravelTime(), 0.0);	// 0.1km with 1m/s walk speed -> 100s
             Assert.assertEquals(1900.0, legDuration, 0.0);
 
-            RoutingModule walkRoutingModule = DefaultRoutingModules.createTeleportationRouter(TransportMode.transit_walk, f.scenario.getPopulation().getFactory(),
+            RoutingModule walkRoutingModule = DefaultRoutingModules.createTeleportationRouter(TransportMode.transit_walk, f.scenario,
                     f.config.plansCalcRoute().getModeRoutingParams().get(TransportMode.walk));
 
             TransitRouterWrapper wrapper = new TransitRouterWrapper(
@@ -513,7 +513,7 @@ public class SwissRailRaptorTest {
             Assert.assertEquals(100, legs.get(4).getTravelTime(), 0.0);	// 0.1km with 1m/s walk speed -> 100s
             Assert.assertEquals(5500.0, legDuration, 0.0);
 
-            RoutingModule walkRoutingModule = DefaultRoutingModules.createTeleportationRouter(TransportMode.transit_walk, f.scenario.getPopulation().getFactory(),
+            RoutingModule walkRoutingModule = DefaultRoutingModules.createTeleportationRouter(TransportMode.transit_walk, f.scenario,
                     f.config.plansCalcRoute().getModeRoutingParams().get(TransportMode.walk));
 
             TransitRouterWrapper wrapper = new TransitRouterWrapper(
@@ -544,7 +544,7 @@ public class SwissRailRaptorTest {
             Assert.assertEquals(1, legs.size());
             Assert.assertEquals(50000, legDuration, 1.0);
 
-            RoutingModule walkRoutingModule = DefaultRoutingModules.createTeleportationRouter(TransportMode.transit_walk, f.scenario.getPopulation().getFactory(),
+            RoutingModule walkRoutingModule = DefaultRoutingModules.createTeleportationRouter(TransportMode.transit_walk, f.scenario,
                     f.config.plansCalcRoute().getModeRoutingParams().get(TransportMode.walk));
 
             TransitRouterWrapper routingModule = new TransitRouterWrapper(

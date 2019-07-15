@@ -66,9 +66,9 @@ public class SwissRailRaptorIntermodalTest {
 
         Map<String, RoutingModule> routingModules = new HashMap<>();
         routingModules.put(TransportMode.walk,
-            new TeleportationRoutingModule(TransportMode.walk, f.scenario.getPopulation().getFactory(), 1.1, 1.3));
+            new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3));
         routingModules.put(TransportMode.bike,
-            new TeleportationRoutingModule(TransportMode.bike, f.scenario.getPopulation().getFactory(), 3, 1.4));
+            new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3, 1.4));
 
         f.srrConfig.setUseIntermodalAccessEgress(true);
         IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
@@ -123,8 +123,8 @@ public class SwissRailRaptorIntermodalTest {
     public void testIntermodalTrip_TripRouterIntegration() {
         IntermodalFixture f = new IntermodalFixture();
 
-        RoutingModule walkRoutingModule = new TeleportationRoutingModule(TransportMode.walk, f.scenario.getPopulation().getFactory(), 1.1, 1.3);
-        RoutingModule bikeRoutingModule = new TeleportationRoutingModule(TransportMode.bike, f.scenario.getPopulation().getFactory(), 3, 1.4);
+        RoutingModule walkRoutingModule = new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3);
+        RoutingModule bikeRoutingModule = new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3, 1.4);
 
         Map<String, RoutingModule> routingModules = new HashMap<>();
         routingModules.put(TransportMode.walk, walkRoutingModule);
@@ -221,9 +221,9 @@ public class SwissRailRaptorIntermodalTest {
 
         Map<String, RoutingModule> routingModules = new HashMap<>();
         routingModules.put(TransportMode.walk,
-                new TeleportationRoutingModule(TransportMode.walk, f.scenario.getPopulation().getFactory(), 1.1, 1.3));
+                new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3));
         routingModules.put(TransportMode.bike,
-                new TeleportationRoutingModule(TransportMode.bike, f.scenario.getPopulation().getFactory(), 3, 1.4));
+                new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3, 1.4));
 
         f.srrConfig.setUseIntermodalAccessEgress(true);
         IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
@@ -279,9 +279,9 @@ public class SwissRailRaptorIntermodalTest {
 
         Map<String, RoutingModule> routingModules = new HashMap<>();
         routingModules.put(TransportMode.walk,
-                new TeleportationRoutingModule(TransportMode.walk, f.scenario.getPopulation().getFactory(), 1.1, 1.3));
+                new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3));
         routingModules.put(TransportMode.bike,
-                new TeleportationRoutingModule(TransportMode.bike, f.scenario.getPopulation().getFactory(), 3, 1.4));
+                new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3, 1.4));
 
         f.srrConfig.setUseIntermodalAccessEgress(true);
         IntermodalAccessEgressParameterSet bikeAccess = new IntermodalAccessEgressParameterSet();
@@ -317,9 +317,9 @@ public class SwissRailRaptorIntermodalTest {
 
         Map<String, RoutingModule> routingModules = new HashMap<>();
         routingModules.put(TransportMode.walk,
-                new TeleportationRoutingModule(TransportMode.walk, f.scenario.getPopulation().getFactory(), 1.1, 1.3));
+                new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3));
         routingModules.put(TransportMode.bike,
-                new TeleportationRoutingModule(TransportMode.bike, f.scenario.getPopulation().getFactory(), 3, 1.4));
+                new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3, 1.4));
 
         // we need to set special values for walk and bike as the defaults are the same for walk, bike and waiting
         // which would result in all options having the same cost in the end.
@@ -381,7 +381,7 @@ public class SwissRailRaptorIntermodalTest {
         // do the test this way to insure it is not accidentally correct due to the accidentally correct order the modes are initialized
         {
             routingModules.put(TransportMode.bike,
-                new TeleportationRoutingModule(TransportMode.bike, f.scenario.getPopulation().getFactory(), 1.0, 1.4));
+                new TeleportationRoutingModule(TransportMode.bike, f.scenario, 1.0, 1.4));
 
             SwissRailRaptorData data = SwissRailRaptorData.create(f.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f.config), f.scenario.getNetwork());
             DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(null, new DefaultRaptorIntermodalAccessEgress(), routingModules);
@@ -418,9 +418,9 @@ public class SwissRailRaptorIntermodalTest {
 
         Map<String, RoutingModule> routingModules = new HashMap<>();
         routingModules.put(TransportMode.walk,
-                new TeleportationRoutingModule(TransportMode.walk, f.scenario.getPopulation().getFactory(), 1.1, 1.3));
+                new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3));
         routingModules.put(TransportMode.bike,
-                new TeleportationRoutingModule(TransportMode.bike, f.scenario.getPopulation().getFactory(), 3, 1.4));
+                new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3, 1.4));
 
         // we need to set special values for walk and bike as the defaults are the same for walk, bike and waiting
         // which would result in all options having the same cost in the end.
@@ -763,9 +763,9 @@ public class SwissRailRaptorIntermodalTest {
 
             this.routingModules = new HashMap<>();
             this.routingModules.put(TransportMode.walk,
-                    new TeleportationRoutingModule(TransportMode.walk, this.scenario.getPopulation().getFactory(), 1.1, 1.3));
+                    new TeleportationRoutingModule(TransportMode.walk, this.scenario, 1.1, 1.3));
             this.routingModules.put(TransportMode.bike,
-                    new TeleportationRoutingModule(TransportMode.bike, this.scenario.getPopulation().getFactory(), 10, 1.4)); // make bike very fast
+                    new TeleportationRoutingModule(TransportMode.bike, this.scenario, 10, 1.4)); // make bike very fast
 
             // we need to set special values for walk and bike as the defaults are the same for walk, bike and waiting
             // which would result in all options having the same cost in the end.
