@@ -8,6 +8,8 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressPar
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.ModeMappingForPassengersParameterSet;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.RangeQuerySettingsParameterSet;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.RouteSelectorParameterSet;
+import ch.sbb.matsim.routing.pt.raptor.RaptorStopFinder.Direction;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +22,9 @@ import org.matsim.core.config.ConfigWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author mrieser / SBB
@@ -142,6 +146,7 @@ public class SwissRailRaptorConfigGroupTest {
 
             IntermodalAccessEgressParameterSet paramset1 = new IntermodalAccessEgressParameterSet();
             paramset1.setMode(TransportMode.bike);
+            paramset1.setDirections("ACCESS,EGRESS");
             paramset1.setRadius(2000);
             paramset1.setPersonFilterAttribute(null);
             paramset1.setStopFilterAttribute("bikeAndRail");
@@ -150,6 +155,7 @@ public class SwissRailRaptorConfigGroupTest {
 
             IntermodalAccessEgressParameterSet paramset2 = new IntermodalAccessEgressParameterSet();
             paramset2.setMode("sff");
+            paramset2.setDirections("ACCESS");
             paramset2.setRadius(5000);
             paramset2.setPersonFilterAttribute("sff_user");
             paramset2.setPersonFilterValue("true");
@@ -170,6 +176,10 @@ public class SwissRailRaptorConfigGroupTest {
 
         IntermodalAccessEgressParameterSet paramSet1 = parameterSets.get(0);
         Assert.assertEquals(TransportMode.bike, paramSet1.getMode());
+        Set<Direction> directions1 = new HashSet<>();
+        directions1.add(Direction.ACCESS);
+        directions1.add(Direction.EGRESS);
+        Assert.assertEquals(directions1, paramSet1.getDirections());
         Assert.assertEquals(2000, paramSet1.getRadius(), 0.0);
         Assert.assertNull(paramSet1.getPersonFilterAttribute());
         Assert.assertNull(paramSet1.getPersonFilterValue());
@@ -179,6 +189,9 @@ public class SwissRailRaptorConfigGroupTest {
 
         IntermodalAccessEgressParameterSet paramSet2 = parameterSets.get(1);
         Assert.assertEquals("sff", paramSet2.getMode());
+        Set<Direction> directions2 = new HashSet<>();
+        directions2.add(Direction.ACCESS);
+        Assert.assertEquals(directions2, paramSet2.getDirections());
         Assert.assertEquals(5000, paramSet2.getRadius(), 0.0);
         Assert.assertEquals("sff_user", paramSet2.getPersonFilterAttribute());
         Assert.assertEquals("true", paramSet2.getPersonFilterValue());
