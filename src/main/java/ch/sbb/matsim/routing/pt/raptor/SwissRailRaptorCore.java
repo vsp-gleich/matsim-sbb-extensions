@@ -83,7 +83,7 @@ public class SwissRailRaptorCore {
         final int maxTransfers = 20; // sensible defaults, could be made configurable if there is a need for it.
         final int maxTransfersAfterFirstArrival = 2;
 
-        log.warn("Calc route from x=" + fromFacility.getCoord().getX() + " y=" + fromFacility.getCoord().getY() + " dep=" + depTime + " to x=" + toFacility.getCoord().getX() + " y=" + toFacility.getCoord().getY() );
+//        log.warn("Calc route from x=" + fromFacility.getCoord().getX() + " y=" + fromFacility.getCoord().getY() + " dep=" + depTime + " to x=" + toFacility.getCoord().getX() + " y=" + toFacility.getCoord().getY() );
         
         reset();
 
@@ -222,13 +222,13 @@ public class SwissRailRaptorCore {
 
 		  PathElement leastCostPath = findLeastCostArrival(destinationStops);
 
-		  log.warn("") ;
-		  log.warn("leastCostPath with nTransfers=" + k + ":") ;
+//		  log.warn("") ;
+//		  log.warn("leastCostPath with nTransfers=" + k + ":") ;
 		  List<Leg> legs = RaptorUtils.convertRouteToLegs( createRaptorRoute( fromFacility, toFacility, leastCostPath, depTime ) );
-		  for( Leg leg : legs ){
-			  log.warn( "leg=" + leg ) ;
-		  }
-		  log.warn("") ;
+//		  for( Leg leg : legs ){
+//			  log.warn( "leg=" + leg ) ;
+//		  }
+//		  log.warn("") ;
 
 
 		  if (leastCostPath != null) {
@@ -239,7 +239,7 @@ public class SwissRailRaptorCore {
             }
 
             if (this.improvedStops.isEmpty()) {
-            	log.warn( "improvedStops isEmpty; leaving loop ...") ;
+//            	log.warn( "improvedStops isEmpty; leaving loop ...") ;
                 break;
             }
 
@@ -248,7 +248,7 @@ public class SwissRailRaptorCore {
 
             // final stage: check stop criterion
             if (this.improvedRouteStopIndices.isEmpty()) {
-            	log.warn( "improvedRouteStopIndices isEmpty; leaving loop ...") ;
+//            	log.warn( "improvedRouteStopIndices isEmpty; leaving loop ...") ;
                 break;
             }
         }
