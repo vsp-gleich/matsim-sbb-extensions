@@ -27,7 +27,7 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
 
     private static final String PARAM_USE_RANGE_QUERY = "useRangeQuery";
     private static final String PARAM_USE_INTERMODAL_ACCESS_EGRESS = "useIntermodalAccessEgress";
-    private static final String PARAM_INTERMODAL_ACCESS_EGRESS_MODE_SELECTION_STYLE = "intermodalAccessEgressModeSelectionStyle";
+    private static final String PARAM_INTERMODAL_ACCESS_EGRESS_MODE_SELECTION = "intermodalAccessEgressModeSelection";
     private static final String PARAM_USE_MODE_MAPPING = "useModeMappingForPassengers";
     private static final String PARAM_SCORING_PARAMETERS = "scoringParameters";
     private static final String PARAM_TRANSFER_PENALTY_BASE = "transferPenaltyBaseCost";
@@ -37,7 +37,7 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
 
     private boolean useRangeQuery = false;
     private boolean useIntermodality = false;
-    private IntermodalAccessEgressModeSelection intermodalAccessEgressModeSelectionStyle = IntermodalAccessEgressModeSelection.CalcLeastCostModePerStop;
+    private IntermodalAccessEgressModeSelection intermodalAccessEgressModeSelection = IntermodalAccessEgressModeSelection.CalcLeastCostModePerStop;
     private boolean useModeMapping = false;
 
     private double transferPenaltyBaseCost = 0;
@@ -84,14 +84,14 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
         this.useIntermodality = useIntermodality;
     }
     
-    @StringGetter(PARAM_INTERMODAL_ACCESS_EGRESS_MODE_SELECTION_STYLE)
-    public IntermodalAccessEgressModeSelection getIntermodalAccessEgressModeSelectionStyle() {
-        return this.intermodalAccessEgressModeSelectionStyle;
+    @StringGetter(PARAM_INTERMODAL_ACCESS_EGRESS_MODE_SELECTION)
+    public IntermodalAccessEgressModeSelection getIntermodalAccessEgressModeSelection() {
+        return this.intermodalAccessEgressModeSelection;
     }
 
-    @StringSetter(PARAM_INTERMODAL_ACCESS_EGRESS_MODE_SELECTION_STYLE)
-    public void setIntermodalAccessEgressModeSelectionStyle(IntermodalAccessEgressModeSelection intermodalAccessEgressModeSelectionStyle) {
-        this.intermodalAccessEgressModeSelectionStyle = intermodalAccessEgressModeSelectionStyle;
+    @StringSetter(PARAM_INTERMODAL_ACCESS_EGRESS_MODE_SELECTION)
+    public void setIntermodalAccessEgressModeSelection(IntermodalAccessEgressModeSelection intermodalAccessEgressModeSelection) {
+        this.intermodalAccessEgressModeSelection = intermodalAccessEgressModeSelection;
     }
 
     @StringGetter(PARAM_USE_MODE_MAPPING)

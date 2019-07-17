@@ -47,7 +47,7 @@ public class SwissRailRaptorModule extends AbstractModule {
 
             if (srrConfig.isUseIntermodalAccessEgress()) {
                 bind(MainModeIdentifier.class).to(IntermodalAwareRouterModeIdentifier.class);
-                switch (srrConfig.getIntermodalAccessEgressModeSelectionStyle()) {
+                switch (srrConfig.getIntermodalAccessEgressModeSelection()) {
     			case CalcLeastCostModePerStop:
     	            bind(RaptorStopFinder.class).to(DefaultRaptorStopFinder.class);
     				break;
