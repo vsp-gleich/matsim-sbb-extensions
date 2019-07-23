@@ -16,10 +16,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
-import org.matsim.api.core.v01.population.Activity;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
@@ -408,7 +405,112 @@ public class SwissRailRaptorIntermodalTest {
             Assert.assertEquals(Id.create("to", Link.class), leg.getRoute().getEndLinkId());
         }
     }
-    
+
+    // Checks RandomAccessEgressModeRaptorStopFinder. The desired result is that the StopFinder will try out the different
+    // access/egress modes, regardless of the modes' freespeeds.
+    @Test
+    public void testIntermodalTrip_RandomAccessEgressModeRaptorStopFinder() {
+        IntermodalFixture f = new IntermodalFixture();
+
+        Map<String, RoutingModule> routingModules = new HashMap<>();
+        routingModules.put(TransportMode.walk,
+                new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3));
+        routingModules.put(TransportMode.bike,
+                new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3, 1.4));
+
+        // we need to set special values for walk and bike as the defaults are the same for walk, bike and waiting
+        // which would result in all options having the same cost in the end.
+        f.config.planCalcScore().getModes().get(TransportMode.walk).setMarginalUtilityOfTraveling(-7);
+        f.config.planCalcScore().getModes().get(TransportMode.bike).setMarginalUtilityOfTraveling(-8);
+
+        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("access_walk");
+        accessWalk.setMarginalUtilityOfTraveling(0);
+        f.config.planCalcScore().addModeParams(accessWalk);
+        PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
+        transitWalk.setMarginalUtilityOfTraveling(0);
+        f.config.planCalcScore().addModeParams(transitWalk);
+        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("egress_walk");
+        egressWalk.setMarginalUtilityOfTraveling(0);
+        f.config.planCalcScore().addModeParams(egressWalk);
+
+        f.srrConfig.setUseIntermodalAccessEgress(true);
+        IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
+        walkAccess.setMode(TransportMode.walk);
+        walkAccess.setRadius(100); // force to nearest stops
+        f.srrConfig.addIntermodalAccessEgress(walkAccess);
+
+        IntermodalAccessEgressParameterSet bikeAccess = new IntermodalAccessEgressParameterSet();
+        bikeAccess.setMode(TransportMode.bike);
+        bikeAccess.setRadius(100); // force to nearest stops
+        f.srrConfig.addIntermodalAccessEgress(bikeAccess);
+
+        Facility fromFac = new FakeFacility(new Coord(10500, 10050), Id.create("from", Link.class)); // stop 3
+        Facility toFac = new FakeFacility(new Coord(50000, 10050), Id.create("to", Link.class)); // stop 5
+
+        {
+
+            int numWalkWalk = 0 ;
+            int numWalkBike = 0 ;
+            int numBikeWalk = 0 ;
+            int numBikeBike = 0 ;
+            int numOther = 0 ;
+
+            SwissRailRaptorData data = SwissRailRaptorData.create(f.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f.config), f.scenario.getNetwork());
+            RandomAccessEgressModeRaptorStopFinder stopFinder = new RandomAccessEgressModeRaptorStopFinder(null, new DefaultRaptorIntermodalAccessEgress(), routingModules);
+
+
+            for (int i = 0; i < 1000; i++) {
+                SwissRailRaptor raptor = new SwissRailRaptor(data, new DefaultRaptorParametersForPerson(f.scenario.getConfig()),
+                        new LeastCostRaptorRouteSelector(), stopFinder, null, null);
+
+                List<Leg> legs = raptor.calcRoute(fromFac, toFac, 7 * 3600, f.dummyPerson);
+
+                { // Test 1: Checks whether the amount of legs is correct, whether the legs have the correct modes,
+                  // and whether the legs start and end on the correct links
+                    Assert.assertEquals("wrong number of legs.", 3, legs.size());
+                    Leg leg = legs.get(0);
+                    Assert.assertTrue((leg.getMode().equals(TransportMode.bike)) || (leg.getMode().equals(TransportMode.access_walk)));
+                    Assert.assertEquals(Id.create("from", Link.class), leg.getRoute().getStartLinkId());
+                    Assert.assertEquals(Id.create("pt_3", Link.class), leg.getRoute().getEndLinkId());
+                    leg = legs.get(1);
+                    Assert.assertEquals(TransportMode.pt, leg.getMode());
+                    Assert.assertEquals(Id.create("pt_3", Link.class), leg.getRoute().getStartLinkId());
+                    Assert.assertEquals(Id.create("pt_5", Link.class), leg.getRoute().getEndLinkId());
+                    leg = legs.get(2);
+                    Assert.assertTrue((leg.getMode().equals(TransportMode.bike)) || (leg.getMode().equals(TransportMode.egress_walk)));
+                    Assert.assertEquals(Id.create("pt_5", Link.class), leg.getRoute().getStartLinkId());
+                    Assert.assertEquals(Id.create("to", Link.class), leg.getRoute().getEndLinkId());
+                }
+
+                { // Test 2: Counts all different access/egress mode combinations. The assertions occur later.
+
+
+                    if ((legs.get(0).getMode().equals(TransportMode.access_walk)) && (legs.get(2).getMode().equals(TransportMode.egress_walk)))
+                        numWalkWalk ++ ;
+                    else if ((legs.get(0).getMode().equals(TransportMode.access_walk)) && (legs.get(2).getMode().equals(TransportMode.bike)))
+                        numWalkBike ++ ;
+                    else if ((legs.get(0).getMode().equals(TransportMode.bike)) && (legs.get(2).getMode().equals(TransportMode.egress_walk)))
+                        numBikeWalk ++ ;
+                    else if ((legs.get(0).getMode().equals(TransportMode.bike)) && (legs.get(2).getMode().equals(TransportMode.bike)))
+                        numBikeBike ++ ;
+                    else
+                        numOther ++ ;
+                }
+            }
+
+            { // Test 2: Tests whether Router chooses all 4 combinations of walk and bike. Also checks that no other
+              // combination is present.
+                Assert.assertTrue(numWalkWalk > 0);
+                Assert.assertTrue(numWalkBike > 0);
+                Assert.assertTrue(numBikeWalk > 0);
+                Assert.assertTrue(numBikeBike > 0);
+                Assert.assertTrue(numOther == 0);
+
+            }
+        }
+    }
+
+
     /**
      * based on testIntermodalTrip_competingAccess. Bike would be fastest, but is only allowed for Direction.ACCESS.
      */
