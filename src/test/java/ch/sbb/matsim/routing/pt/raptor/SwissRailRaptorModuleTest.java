@@ -36,6 +36,7 @@ import org.matsim.core.controler.events.IterationStartsEvent;
 import org.matsim.core.controler.events.StartupEvent;
 import org.matsim.core.controler.listener.IterationStartsListener;
 import org.matsim.core.controler.listener.StartupListener;
+import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.RoutingModule;
@@ -344,10 +345,12 @@ public class SwissRailRaptorModuleTest {
 		Scenario scenario = ScenarioUtils.createScenario(config);
 		
 		Person personA = scenario.getPopulation().getFactory().createPerson(Id.createPersonId("A"));
-		scenario.getPopulation().getPersonAttributes().putAttribute("A", "subpopulation", "default");
+//		scenario.getPopulation().getPersonAttributes().putAttribute("A", "subpopulation", "default");
+	    PopulationUtils.putPersonAttribute( personA, "subpopulation", "default" );
 		
 		Person personB = scenario.getPopulation().getFactory().createPerson(Id.createPersonId("B"));
-		scenario.getPopulation().getPersonAttributes().putAttribute("B", "subpopulation", "sub");
+//		scenario.getPopulation().getPersonAttributes().putAttribute("B", "subpopulation", "sub");
+	    PopulationUtils.putPersonAttribute( personB, "subpopulation" , "sub" );
 
 		Controler controller = new Controler(scenario);
 		controller.addOverridingModule(new SwissRailRaptorModule());
