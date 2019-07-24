@@ -38,13 +38,13 @@ import java.util.stream.Collectors;
  */
 public class DefaultRaptorStopFinder implements RaptorStopFinder {
 
-	private final ObjectAttributes personAttributes;
+//	private final ObjectAttributes personAttributes;
 	private final RaptorIntermodalAccessEgress intermodalAE;
 	private final Map<String, RoutingModule> routingModules;
 
 	@Inject
 	public DefaultRaptorStopFinder(Population population, Config config, RaptorIntermodalAccessEgress intermodalAE, Map<String, Provider<RoutingModule>> routingModuleProviders) {
-		this.personAttributes = population == null ? null : population.getPersonAttributes();
+//		this.personAttributes = population == null ? null : population.getPersonAttributes();
 		this.intermodalAE = intermodalAE;
 
 		SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
@@ -58,7 +58,7 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 	}
 
 	public DefaultRaptorStopFinder(Population population, RaptorIntermodalAccessEgress intermodalAE, Map<String, RoutingModule> routingModules) {
-		this.personAttributes = population == null ? null : population.getPersonAttributes();
+//		this.personAttributes = population == null ? null : population.getPersonAttributes();
 		this.intermodalAE = intermodalAE;
 		this.routingModules = routingModules;
 	}
@@ -138,7 +138,8 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 
 			boolean personMatches = true;
 			if (personFilterAttribute != null) {
-				Object attr = this.personAttributes.getAttribute(personId, personFilterAttribute);
+//				Object attr = this.personAttributes.getAttribute(personId, personFilterAttribute);
+				Object attr = person.getAttributes().getAttribute( personFilterAttribute ) ;
 				String attrValue = attr == null ? null : attr.toString();
 				personMatches = personFilterValue.equals(attrValue);
 			}
