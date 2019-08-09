@@ -76,7 +76,11 @@ public class SwissRailRaptor implements TransitRouter {
         if (foundRoute == null || foundRoute.parts.size() == 0 /* || directWalk.getTotalCosts() < foundRoute.getTotalCosts() */) {
 //		  log.warn( "foundRouteCost=" + foundRoute.getTotalCosts() ) ;
 //		  log.warn( "directWalkCost=" + directWalk.getTotalCosts() ) ;
-        	log.warn("No route found for person " + person.getId() + ": trip from x=" + fromFacility.getCoord().getX() + ",y=" + fromFacility.getCoord().getY() + " departure at " + departureTime + " to x=" + toFacility.getCoord().getX() + ",y=" + toFacility.getCoord().getY());
+        	if (person == null) {
+            	log.warn("No route found for person null: trip from x=" + fromFacility.getCoord().getX() + ",y=" + fromFacility.getCoord().getY() + " departure at " + departureTime + " to x=" + toFacility.getCoord().getX() + ",y=" + toFacility.getCoord().getY());
+        	} else {
+            	log.warn("No route found for person " + person.getId() + ": trip from x=" + fromFacility.getCoord().getX() + ",y=" + fromFacility.getCoord().getY() + " departure at " + departureTime + " to x=" + toFacility.getCoord().getX() + ",y=" + toFacility.getCoord().getY());
+        	}
             foundRoute = directWalk;
         }
         
