@@ -1143,6 +1143,10 @@ public class SwissRailRaptorTest {
             PlansCalcRouteConfigGroup.ModeRoutingParams walkParameters = new PlansCalcRouteConfigGroup.ModeRoutingParams(TransportMode.walk);
             walkParameters.setTeleportedModeSpeed(beelineDistanceFactor); // set it such that the beelineWalkSpeed is exactly 1
             this.config.plansCalcRoute().addParameterSet(walkParameters);
+            
+            PlansCalcRouteConfigGroup.ModeRoutingParams non_network_walkParameters = new PlansCalcRouteConfigGroup.ModeRoutingParams(TransportMode.non_network_walk);
+            non_network_walkParameters.setTeleportedModeSpeed(beelineDistanceFactor); // set it such that the beelineWalkSpeed is exactly 1
+            this.config.plansCalcRoute().addParameterSet(non_network_walkParameters);
 //            double beelineWalkSpeed = this.config.plansCalcRoute().addParameterSet(walk);getTeleportedModeSpeeds().get(TransportMode.walk) / beelineDistanceFactor;
 
             // network
