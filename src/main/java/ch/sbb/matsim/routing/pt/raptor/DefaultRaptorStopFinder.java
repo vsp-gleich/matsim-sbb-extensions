@@ -119,7 +119,6 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 				// this access/egress mode is not allowed for the direction we are looking at. Skip it.
 				continue;
 			}
-			double radius = paramset.getRadius();
 			String mode = paramset.getMode();
 			String overrideMode = null;
 			if (mode.equals(TransportMode.walk) || mode.equals(TransportMode.transit_walk)) {
@@ -145,7 +144,14 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 			}
 
 			if (personMatches) {
-				Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, radius);
+				Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, paramset.getInitialSearchRadius());
+				if (stopFacilities.size() < 2) {
+					TransitStopFacility  nearestStop = data.stopsQT.getClosest(x, y);
+					double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
+					double newSearchRadius = Math.max( nearestDistance + paramset.getSearchExtensionRadius(), paramset.getRadius() );
+					stopFacilities = data.stopsQT.getDisk(x, y, newSearchRadius);
+				}
+				
 				for (TransitStopFacility stop : stopFacilities) {
 					boolean filterMatches = true;
 					if (stopFilterAttribute != null) {
