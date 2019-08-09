@@ -18,11 +18,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 /**
  * @author mrieser / SBB
  */
 public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
 
+	private static final Logger log = Logger.getLogger(SwissRailRaptorConfigGroup.class);
     public static final String GROUP = "swissRailRaptor";
 
     private static final String PARAM_USE_RANGE_QUERY = "useRangeQuery";
@@ -406,8 +409,6 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
             directions = new HashSet<>();
             directions.add(Direction.ACCESS);
             directions.add(Direction.EGRESS);
-//            if (initialSearchRadius)  = radius;
-//            searchExtensionRadius = initialSearchRadius / 2;
         }
 
         @StringGetter(PARAM_MODE)
@@ -456,6 +457,11 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
         @StringSetter(PARAM_RADIUS)
         public void setRadius(double radius) {
             this.radius = radius;
+            // check for consistency
+            if (radius < initialSearchRadius) {
+            	log.info("radius is smaller than initialSearchRadius. Setting initialSearchRadius:=radius");
+            	initialSearchRadius = radius;
+            }
         }
         
         @StringGetter(PARAM_INITIAL_SEARCH_RADIUS)
@@ -465,7 +471,13 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
 
         @StringSetter(PARAM_INITIAL_SEARCH_RADIUS)
         public void setInitialSearchRadius(double initialSearchRadius) {
-            this.initialSearchRadius = initialSearchRadius;
+            // check for consistency
+        	if (initialSearchRadius <= radius) {
+                this.initialSearchRadius = initialSearchRadius;
+        	} else {
+            	log.info("radius is smaller than initialSearchRadius. Setting initialSearchRadius:=radius");
+            	initialSearchRadius = radius;
+        	}
         }
         
         @StringGetter(PARAM_SEARCH_EXTENSION_RADIUS)
