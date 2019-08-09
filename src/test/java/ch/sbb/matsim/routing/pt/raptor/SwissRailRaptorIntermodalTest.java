@@ -287,6 +287,7 @@ public class SwissRailRaptorIntermodalTest {
         IntermodalAccessEgressParameterSet bikeAccess = new IntermodalAccessEgressParameterSet();
         bikeAccess.setMode(TransportMode.bike);
         bikeAccess.setRadius(1200);
+        bikeAccess.setInitialSearchRadius(1200);
         bikeAccess.setStopFilterAttribute("bikeAccessible");
         bikeAccess.setLinkIdAttribute("accessLinkId_bike");
         bikeAccess.setStopFilterValue("true");
@@ -539,7 +540,7 @@ public class SwissRailRaptorIntermodalTest {
 
     /**
      * Tests the following situation: two stops A and B close to each other, A has intermodal access, B not.
-     * They route is fastest from B to C, with intermodal access to A and then transferring from A to B.
+     * The route is fastest from B to C, with intermodal access to A and then transferring from A to B.
      * Make sure that in such cases the correct transit_walks are generated around stops A and B for access to pt.
      */
     @Test
@@ -559,7 +560,7 @@ public class SwissRailRaptorIntermodalTest {
             System.out.println(leg);
         }
 
-        Assert.assertTrue(legs.size() == 5);
+        Assert.assertEquals(5, legs.size());
 
         Leg legBike = legs.get(0);
         Assert.assertEquals("bike", legBike.getMode());
@@ -582,7 +583,7 @@ public class SwissRailRaptorIntermodalTest {
         Assert.assertEquals("DD", legPT.getRoute().getEndLinkId().toString());
 
         Leg legAccess = legs.get(4);
-        Assert.assertEquals("egress_walk", legAccess.getMode());
+        Assert.assertEquals(TransportMode.non_network_walk, legAccess.getMode());
         Assert.assertEquals("DD", legAccess.getRoute().getStartLinkId().toString());
         Assert.assertEquals("to", legAccess.getRoute().getEndLinkId().toString());
     }
@@ -607,7 +608,7 @@ public class SwissRailRaptorIntermodalTest {
         Assert.assertTrue(legs.size() == 5);
 
         Leg legAccess = legs.get(0);
-        Assert.assertEquals("access_walk", legAccess.getMode());
+        Assert.assertEquals(TransportMode.non_network_walk, legAccess.getMode());
         Assert.assertEquals("from", legAccess.getRoute().getStartLinkId().toString());
         Assert.assertEquals("DD", legAccess.getRoute().getEndLinkId().toString());
 
@@ -788,11 +789,13 @@ public class SwissRailRaptorIntermodalTest {
             IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.walk);
             walkAccess.setRadius(500);
+            walkAccess.setInitialSearchRadius(500);
             this.srrConfig.addIntermodalAccessEgress(walkAccess);
 
             IntermodalAccessEgressParameterSet bikeAccess = new IntermodalAccessEgressParameterSet();
             bikeAccess.setMode(TransportMode.bike);
             bikeAccess.setRadius(1000);
+            bikeAccess.setInitialSearchRadius(1000);
             bikeAccess.setStopFilterAttribute("bikeAccessible");
             bikeAccess.setStopFilterValue("true");
             bikeAccess.setLinkIdAttribute("accessLinkId_bike");
