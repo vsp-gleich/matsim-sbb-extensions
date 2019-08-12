@@ -29,6 +29,7 @@ import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.TeleportationRoutingModule;
 import org.matsim.core.router.TripRouter;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.PtConstants;
@@ -262,6 +263,9 @@ public class SwissRailRaptorIntermodalTest {
     /**
      * Test that if start and end are close to each other, such that the intermodal
      * access and egress go to/from the same stop, still a direct transit_walk is returned.
+     * 
+     * Aug'19: The pt router shall no longer return direct walks, so check instead that the
+     * correct intermodal trip via a transit stop is returned.
      */
     @Test
     public void testIntermodalTrip_withoutPt() {
@@ -305,11 +309,42 @@ public class SwissRailRaptorIntermodalTest {
         for (Leg leg : legs) {
             System.out.println(leg);
         }
+        
+        // As the router shall no longer give back direct walks, the right solution would now be
+        // bike to bike network link next to transit stop -> non_network_walk to transit stop -> 
+        // non_network_walk back to bike network link -> bike to destination
+        
+        // closest pt stop is stop 3 at 10500, 10000
+        Coord ptStop3 = f.scenario.getTransitSchedule().getFacilities().get(Id.create("3", TransitStopFacility.class)).getCoord();
 
-        Assert.assertEquals("wrong number of legs.", 1, legs.size());
+        Assert.assertEquals("wrong number of legs.", 4, legs.size());
         Leg leg = legs.get(0);
+        Assert.assertEquals(TransportMode.bike, leg.getMode());
+        Assert.assertEquals(CoordUtils.calcEuclideanDistance(fromFac.getCoord(), ptStop3)*1.4, leg.getRoute().getDistance(), 1e-7);
+        Assert.assertEquals(Id.createLinkId("from"), leg.getRoute().getStartLinkId());
+        // TODO: the transit stop facilities in the intermodal fixture are located on links which are very far away from the stop
+        // coordinate. This looks weird, e.g. stop "3" is at 10500, 10000 but on link "pt_3" fromNode 25000, 10000 toNode 30000, 10000
+        // This seems to cause the weird choice of bike links next to the station ("bike_3" fromNode 25000, 10000 toNode 30000, 10000)
+        // However the distances are right.
+        // For the time being accept that and check that these start/end link ids are returned. - gleich aug'19
+        Assert.assertEquals(Id.createLinkId("bike_3"), leg.getRoute().getEndLinkId());
+        leg = legs.get(1);
+        // walk from bike network link next to stop to transit stop link
         Assert.assertEquals(TransportMode.transit_walk, leg.getMode());
-        Assert.assertEquals(Math.sqrt(1000*1000+2000*2000)*1.3, leg.getRoute().getDistance(), 1e-7);
+        Assert.assertEquals(0, leg.getRoute().getDistance(), 1e-7);
+        Assert.assertEquals(Id.createLinkId("bike_3"), leg.getRoute().getStartLinkId());
+        Assert.assertEquals(Id.createLinkId("pt_3"), leg.getRoute().getEndLinkId());
+        leg = legs.get(2);
+        // walk back from transit stop link to bike network link
+        Assert.assertEquals(TransportMode.transit_walk, leg.getMode());
+        Assert.assertEquals(0, leg.getRoute().getDistance(), 1e-7);
+        Assert.assertEquals(Id.createLinkId("pt_3"), leg.getRoute().getStartLinkId());
+        Assert.assertEquals(Id.createLinkId("bike_3"), leg.getRoute().getEndLinkId());
+        leg = legs.get(3);
+        Assert.assertEquals(TransportMode.bike, leg.getMode());
+        Assert.assertEquals(CoordUtils.calcEuclideanDistance(ptStop3, toFac.getCoord())*1.4, leg.getRoute().getDistance(), 1e-7);
+        Assert.assertEquals(Id.createLinkId("bike_3"), leg.getRoute().getStartLinkId());
+        Assert.assertEquals(Id.createLinkId("to"), leg.getRoute().getEndLinkId());
     }
 
     @Test
@@ -765,6 +800,8 @@ public class SwissRailRaptorIntermodalTest {
             this.routingModules = new HashMap<>();
             this.routingModules.put(TransportMode.walk,
                     new TeleportationRoutingModule(TransportMode.walk, this.scenario, 1.1, 1.3));
+            this.routingModules.put(TransportMode.non_network_walk,
+                    new TeleportationRoutingModule(TransportMode.non_network_walk, this.scenario, 1.1, 1.3));
             this.routingModules.put(TransportMode.bike,
                     new TeleportationRoutingModule(TransportMode.bike, this.scenario, 10, 1.4)); // make bike very fast
 
@@ -784,6 +821,9 @@ public class SwissRailRaptorIntermodalTest {
             PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("egress_walk");
             egressWalk.setMarginalUtilityOfTraveling(0);
             this.config.planCalcScore().addModeParams(egressWalk);
+            PlanCalcScoreConfigGroup.ModeParams nonNetworkWalk = new PlanCalcScoreConfigGroup.ModeParams(TransportMode.non_network_walk);
+            nonNetworkWalk.setMarginalUtilityOfTraveling(0);
+            this.config.planCalcScore().addModeParams(nonNetworkWalk);
 
             this.srrConfig.setUseIntermodalAccessEgress(true);
             IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
