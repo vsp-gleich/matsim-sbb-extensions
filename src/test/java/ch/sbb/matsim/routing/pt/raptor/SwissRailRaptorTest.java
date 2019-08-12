@@ -181,16 +181,23 @@ public class SwissRailRaptorTest {
         Coord fromCoord = new Coord(3800, 5100);
         Coord toCoord = new Coord(4100, 5050);
         List<Leg> legs = router.calcRoute(new FakeFacility(fromCoord), new FakeFacility(toCoord), 5.0*3600, null);
-        assertEquals(1, legs.size());
-        assertEquals(TransportMode.transit_walk, legs.get(0).getMode());
+        // without direct walks it should now be: non_network_walk -> stop -> non_network_walk
+        assertEquals(2, legs.size());
+        assertEquals(TransportMode.non_network_walk, legs.get(0).getMode());
+        assertEquals(TransportMode.non_network_walk, legs.get(1).getMode());
         double actualTravelTime = 0.0;
         for (Leg leg : legs) {
             actualTravelTime += leg.getTravelTime();
         }
-        double expectedTravelTime = CoordUtils.calcEuclideanDistance(fromCoord, toCoord) / raptorParams.getBeelineWalkSpeed();
-        assertEquals(expectedTravelTime, actualTravelTime, MatsimTestCase.EPSILON);
+        // closest pt stop is stop 0
+        Coord ptStop0 = f.schedule.getFacilities().get(Id.create("0", TransitStopFacility.class)).getCoord();
+        double expectedTravelTime = CoordUtils.calcEuclideanDistance(fromCoord, ptStop0) / raptorParams.getBeelineWalkSpeed() +
+        CoordUtils.calcEuclideanDistance(ptStop0, toCoord) / raptorParams.getBeelineWalkSpeed();
+        assertEquals(expectedTravelTime, actualTravelTime, 2.0); // result is rounded up for each leg, so allow 1s per leg
     }
 
+    // now the pt router should always try to return a pt route no matter whether a direct walk would be faster
+    // adjusted the test - gl aug'19
     @Test
     public void testDirectWalkCheaper() {
         Fixture f = new Fixture();
@@ -200,12 +207,24 @@ public class SwissRailRaptorTest {
         Coord fromCoord = new Coord(4000, 3000);
         Coord toCoord = new Coord(8000, 3000);
         List<Leg> legs = router.calcRoute(new FakeFacility(fromCoord), new FakeFacility(toCoord), 5.0*3600, null);
-        assertEquals(1, legs.size());
-        assertEquals(TransportMode.transit_walk, legs.get(0).getMode());
-        assertEquals(4000*1.3, legs.get(0).getRoute().getDistance(), 0.0);
-        double actualTravelTime = legs.get(0).getTravelTime();
-        double expectedTravelTime = CoordUtils.calcEuclideanDistance(fromCoord, toCoord) / raptorParams.getBeelineWalkSpeed();
-        assertEquals(expectedTravelTime, actualTravelTime, MatsimTestCase.EPSILON);
+        
+        assertEquals(3, legs.size());
+        assertEquals(TransportMode.non_network_walk, legs.get(0).getMode());
+        assertEquals(TransportMode.pt, legs.get(1).getMode());
+        assertEquals(TransportMode.non_network_walk, legs.get(2).getMode());
+        // check individual legs
+        Coord ptStop0 = f.schedule.getFacilities().get(Id.create("0", TransitStopFacility.class)).getCoord();
+        double expectedAccessWalkTravelTime = CoordUtils.calcEuclideanDistance(fromCoord, ptStop0) / raptorParams.getBeelineWalkSpeed();
+        assertEquals(expectedAccessWalkTravelTime, legs.get(0).getTravelTime(), 1.0);
+        assertEquals((5002-3000)*1.3, legs.get(0).getRoute().getDistance(), 0.0);
+
+        double expectedPtTravelTime = 6.0*3600 + 6.0*60 - (5.0*3600 + expectedAccessWalkTravelTime) + 7*60; // next departure blue line is at 6.0*3600 + 6.0*60, 7*60 travel time
+        assertEquals(expectedPtTravelTime, legs.get(1).getTravelTime(), 1.0);
+        
+        Coord ptStop2 = f.schedule.getFacilities().get(Id.create("2", TransitStopFacility.class)).getCoord();
+        double expectedEgressWalkTravelTime = CoordUtils.calcEuclideanDistance(ptStop2, toCoord) / raptorParams.getBeelineWalkSpeed();
+        assertEquals(expectedEgressWalkTravelTime, legs.get(2).getTravelTime(), 1.0);
+        assertEquals((5002-3000)*1.3, legs.get(2).getRoute().getDistance(), 0.0);
     }
 
 
@@ -709,7 +728,7 @@ public class SwissRailRaptorTest {
         TravelTimeDependentTransferFixture f = new TravelTimeDependentTransferFixture();
 
         { // test default 0 + 0 * tt
-            Config config = prepareConfig(0, 0);
+            Config config = prepareConfig(0, 0); // sets beeline walk speed to 1m/s
             SwissRailRaptor raptor = createTransitRouter(f.schedule, config, f.network);
 
             Coord fromCoord = new Coord(0, 100);
@@ -722,7 +741,7 @@ public class SwissRailRaptorTest {
             RaptorParameters params = RaptorUtils.createParameters(config);
 
             double expectedTravelTime = 35*60; // 35 minutes: 15 Blue, 5 Transfer, 15 Red
-            double expectedAccessEgressTime = 2 * 100;  // 2 * 100 meters at 1m/s
+            double expectedAccessEgressTime = 2 * 100; // 2 * 100 meters at 1m/s beeline walk speed (beeline factor included)
             double expectedCost = (expectedTravelTime + expectedAccessEgressTime) * -params.getMarginalUtilityOfTravelTime_utl_s(TransportMode.pt);
 
             Assert.assertEquals(expectedCost, route1.getTotalCosts(), 1e-7);
@@ -798,6 +817,10 @@ public class SwissRailRaptorTest {
         PlansCalcRouteConfigGroup.ModeRoutingParams walkParameters = new PlansCalcRouteConfigGroup.ModeRoutingParams(TransportMode.walk);
         walkParameters.setTeleportedModeSpeed(beelineDistanceFactor); // set it such that the beelineWalkSpeed is exactly 1
         config.plansCalcRoute().addParameterSet(walkParameters);
+        
+        PlansCalcRouteConfigGroup.ModeRoutingParams non_network_walkParameters = new PlansCalcRouteConfigGroup.ModeRoutingParams(TransportMode.non_network_walk);
+        non_network_walkParameters.setTeleportedModeSpeed(beelineDistanceFactor); // set it such that the beelineWalkSpeed is exactly 1
+        config.plansCalcRoute().addParameterSet(non_network_walkParameters);
 
         config.planCalcScore().setUtilityOfLineSwitch(-transferFixedCost);
         srrConfig.setTransferPenaltyBaseCost(transferFixedCost);
