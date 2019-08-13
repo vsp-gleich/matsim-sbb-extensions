@@ -205,11 +205,11 @@ public class SwissRailRaptorCore {
             }
         }
 
-//        if (hasIntermodalAccess) {
-//            // allow transfering from the initial stop to another one if we have intermodal access,
-//            // as not all stops might be intermodal
-//            handleTransfers(true, parameters);
-//        }
+        if (hasIntermodalAccess) {
+            // allow transfering from the initial stop to another one if we have intermodal access,
+            // as not all stops might be intermodal
+            handleTransfers(true, parameters);
+        }
 
         int allowedTransfersLeft = maxTransfersAfterFirstArrival;
         // the main loop
