@@ -640,7 +640,7 @@ public class SwissRailRaptorIntermodalTest {
             System.out.println(leg);
         }
 
-        Assert.assertTrue(legs.size() == 5);
+        Assert.assertEquals(5, legs.size());
 
         Leg legAccess = legs.get(0);
         Assert.assertEquals(TransportMode.non_network_walk, legAccess.getMode());
