@@ -811,18 +811,27 @@ public class SwissRailRaptorIntermodalTest {
             this.config.planCalcScore().getModes().get(TransportMode.bike).setMarginalUtilityOfTraveling(-8);
 
             this.config.transitRouter().setMaxBeelineWalkConnectionDistance(150);
-
-            PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("access_walk");
-            accessWalk.setMarginalUtilityOfTraveling(0);
-            this.config.planCalcScore().addModeParams(accessWalk);
-            PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
+            
+            PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams(TransportMode.transit_walk);
             transitWalk.setMarginalUtilityOfTraveling(0);
             this.config.planCalcScore().addModeParams(transitWalk);
-            PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("egress_walk");
-            egressWalk.setMarginalUtilityOfTraveling(0);
-            this.config.planCalcScore().addModeParams(egressWalk);
+            
+			/*
+			 * Prior to non_network_walk the utilities of access_walk and egress_walk were set to 0 here.
+			 * non_network_walk replaced access_walk and egress_walk, so one might assume that now egress_walk should
+			 * have marginalUtilityOfTraveling = 0.
+			 * 
+			 * However, non_network_walk also replaces walk, so the alternative access leg by *_walk without any bike
+			 * leg is calculated based on marginalUtilityOfTraveling of non_network_walk. Setting
+			 * marginalUtilityOfTraveling = 0 obviously makes that alternative more attractive than any option with bike
+			 * could be. So set it to the utility TransportMode.walk already had before the replacement of access_walk
+			 * and egress_walk by non_network_walk. This should be fine as the non_network_walk legs in the path with
+			 * bike (and access / egress transfer) are rather short and thereby have little influence on the total cost.
+			 * Furthermore, this is additional cost for the path including bike, so we are on the safe side with that
+			 * change. - gleich aug'19
+			 */
             PlanCalcScoreConfigGroup.ModeParams nonNetworkWalk = new PlanCalcScoreConfigGroup.ModeParams(TransportMode.non_network_walk);
-            nonNetworkWalk.setMarginalUtilityOfTraveling(0);
+            nonNetworkWalk.setMarginalUtilityOfTraveling(-7);
             this.config.planCalcScore().addModeParams(nonNetworkWalk);
 
             this.srrConfig.setUseIntermodalAccessEgress(true);
