@@ -224,7 +224,7 @@ public class SwissRailRaptorCore {
 
 //		  log.warn("") ;
 //		  log.warn("leastCostPath with nTransfers=" + k + ":") ;
-		  List<Leg> legs = RaptorUtils.convertRouteToLegs( createRaptorRoute( fromFacility, toFacility, leastCostPath, depTime ) );
+//		  List<Leg> legs = RaptorUtils.convertRouteToLegs( createRaptorRoute( fromFacility, toFacility, leastCostPath, depTime ) );
 //		  for( Leg leg : legs ){
 //			  log.warn( "leg=" + leg ) ;
 //		  }
