@@ -17,6 +17,7 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.RoutingModule;
+import org.matsim.core.router.Transit;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.Facility;
@@ -25,12 +26,7 @@ import org.matsim.utils.objectattributes.ObjectAttributes;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -145,6 +141,20 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 
 			if (personMatches) {
 				Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, paramset.getInitialSearchRadius());
+
+				//jr start
+				for (Iterator<TransitStopFacility> it = stopFacilities.iterator(); it.hasNext(); ) {
+					TransitStopFacility stop = it.next() ;
+					boolean filterMatches = true;
+					if (stopFilterAttribute != null) {
+						Object attr = stop.getAttributes().getAttribute(stopFilterAttribute);
+						String attrValue = attr == null ? null : attr.toString();
+						filterMatches = stopFilterValue.equals(attrValue);
+					}
+					if(!filterMatches) it.remove();
+				}
+				//jr end
+
 				if (stopFacilities.size() < 2) {
 					TransitStopFacility  nearestStop = data.stopsQT.getClosest(x, y);
 					double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
