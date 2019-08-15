@@ -20,6 +20,7 @@ import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
+import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.RoutingModule;
@@ -1265,8 +1266,8 @@ public class SwissRailRaptorIntermodalTest {
             IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.walk);
             walkAccess.setRadius(10000000); // should not be limiting factor
-            walkAccess.setInitialSearchRadius(700); // Should include stops B
-            walkAccess.setSearchExtensionRadius(500);
+            walkAccess.setInitialSearchRadius(600); // Should include stops B
+            walkAccess.setSearchExtensionRadius(600);
             f1.srrConfig.addIntermodalAccessEgress(walkAccess);
 
             SwissRailRaptorData data = SwissRailRaptorData.create(f1.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f1.config), f1.scenario.getNetwork());
@@ -1294,8 +1295,8 @@ public class SwissRailRaptorIntermodalTest {
             Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getEndLinkId());
         }
 
-        // Test 5: Initial_Search_Radius only includes B,
-        // Search_Extension_Radius includes C and D
+        // Test 5: Initial_Search_Radius only includes nothing,
+        // Search_Extension_Radius includes B, C and D
         // Line D is faster than lines B and C
         // expected: D
         {
@@ -1310,8 +1311,8 @@ public class SwissRailRaptorIntermodalTest {
             IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.walk);
             walkAccess.setRadius(10000000); // should not be limiting factor
-            walkAccess.setInitialSearchRadius(700); // Should include stops B
-            walkAccess.setSearchExtensionRadius(1000);
+            walkAccess.setInitialSearchRadius(200); // Should include stops B
+            walkAccess.setSearchExtensionRadius(1100);
             f1.srrConfig.addIntermodalAccessEgress(walkAccess);
 
             SwissRailRaptorData data = SwissRailRaptorData.create(f1.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f1.config), f1.scenario.getNetwork());
@@ -1387,33 +1388,48 @@ public class SwissRailRaptorIntermodalTest {
 
         // Test 7: Test Stop Filter Attributes
         // Initial_Search_Radius includes B and C and D
-        // C and D have attribute "walk" as "true".
+        // C and D have attribute "zoomerAccessible" as "true".
         // Search_Extension_Radius is 0
         // General_Radius includes B, C, D, E
         // B and D are faster than C
         // expected: D, since it is faster and it has correct attribute
-        // Fail
         {
-            IntermodalFixtureJakob f0 = new IntermodalFixtureJakob(10*60., 20*60., 10*60., 1.);
+            IntermodalFixtureJakob f0 = new IntermodalFixtureJakob(1., 20*60., 10*60., 1.);
 
-//            f0.scenario.getTransitSchedule().getFacilities().get(Id.create("C", TransitStopFacility.class)).getAttributes().putAttribute("walkAccessible", "true");
-//            f0.scenario.getTransitSchedule().getFacilities().get(Id.create("D", TransitStopFacility.class)).getAttributes().putAttribute("walkAccessible", "true");
+            f0.scenario.getTransitSchedule().getFacilities().get(Id.create("C", TransitStopFacility.class)).getAttributes().putAttribute("zoomerAccessible", "true");
+            f0.scenario.getTransitSchedule().getFacilities().get(Id.create("D", TransitStopFacility.class)).getAttributes().putAttribute("zoomerAccessible", "true");
 
             Map<String, RoutingModule> routingModules = new HashMap<>();
             routingModules.put(TransportMode.walk,
-                    new TeleportationRoutingModule(TransportMode.walk, f0.scenario, 1000., 1.0));
+                    new TeleportationRoutingModule(TransportMode.walk, f0.scenario, 5, 1.0));
             routingModules.put(TransportMode.non_network_walk,
-                    new TeleportationRoutingModule(TransportMode.non_network_walk, f0.scenario, 1000., 1.0));
+                    new TeleportationRoutingModule(TransportMode.non_network_walk, f0.scenario, 5, 1.0));
+            routingModules.put("zoomer",
+                    new TeleportationRoutingModule("zoomer", f0.scenario, 1000., 1.));
+
+            PlanCalcScoreConfigGroup.ModeParams modeParams = new PlanCalcScoreConfigGroup.ModeParams("zoomer");
+            modeParams.setMarginalUtilityOfTraveling(0.);
+            f0.scenario.getConfig().planCalcScore().addModeParams(modeParams);
 
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
-            walkAccess.setInitialSearchRadius(1700); // Should include stops B and C
+            walkAccess.setRadius(0); // should not be limiting factor
+            walkAccess.setInitialSearchRadius(0); // Should include stops B and C and D
             walkAccess.setSearchExtensionRadius(0); // includes D (if neccessary)
-            walkAccess.setStopFilterAttribute("walkAccessible");
-            walkAccess.setStopFilterValue("true");
+//            walkAccess.setStopFilterAttribute("walkAccessible");
+//            walkAccess.setStopFilterValue("true");
             f0.srrConfig.addIntermodalAccessEgress(walkAccess);
+
+            f0.srrConfig.setUseIntermodalAccessEgress(true);
+            IntermodalAccessEgressParameterSet zoomerAccess = new IntermodalAccessEgressParameterSet();
+            zoomerAccess.setMode("zoomer");
+            zoomerAccess.setRadius(10000000); // should not be limiting factor
+            zoomerAccess.setInitialSearchRadius(1700); // Should include stops B and C and D
+            zoomerAccess.setSearchExtensionRadius(0); // includes D (if neccessary)
+            zoomerAccess.setStopFilterAttribute("zoomerAccessible");
+            zoomerAccess.setStopFilterValue("true");
+            f0.srrConfig.addIntermodalAccessEgress(zoomerAccess);
 
             SwissRailRaptorData data = SwissRailRaptorData.create(f0.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f0.config), f0.scenario.getNetwork());
             DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(null, new DefaultRaptorIntermodalAccessEgress(), routingModules);
@@ -1427,7 +1443,7 @@ public class SwissRailRaptorIntermodalTest {
 
             Assert.assertEquals("wrong number of legs.", 3, legs.size());
             Leg leg = legs.get(0);
-            Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
+            Assert.assertEquals("zoomer", leg.getMode());
             Assert.assertEquals(Id.create("AA", Link.class), leg.getRoute().getStartLinkId());
             Assert.assertEquals(Id.create("DD", Link.class), leg.getRoute().getEndLinkId());
             leg = legs.get(1);
@@ -1438,6 +1454,78 @@ public class SwissRailRaptorIntermodalTest {
             Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
             Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getStartLinkId());
             Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getEndLinkId());
+
+
+        }
+
+        // Test 8: Test Stop Filter Attributes
+        // Initial_Search_Radius includes B and C
+        // C and D have attribute "zoomerAccessible" as "true".
+        // Search_Extension_Radius is 1100, should include D
+        // General_Radius includes B, C, D, E
+        // B and D are faster than C
+        // expected: D, since it is faster and it has correct attribute
+        {
+//            IntermodalFixtureJakob f0 = new IntermodalFixtureJakob(1., 20*60., 10*60., 1.);
+//
+//            f0.scenario.getTransitSchedule().getFacilities().get(Id.create("C", TransitStopFacility.class)).getAttributes().putAttribute("zoomerAccessible", "true");
+//            f0.scenario.getTransitSchedule().getFacilities().get(Id.create("D", TransitStopFacility.class)).getAttributes().putAttribute("zoomerAccessible", "true");
+//
+//            Map<String, RoutingModule> routingModules = new HashMap<>();
+//            routingModules.put(TransportMode.walk,
+//                    new TeleportationRoutingModule(TransportMode.walk, f0.scenario, 5, 1.0));
+//            routingModules.put(TransportMode.non_network_walk,
+//                    new TeleportationRoutingModule(TransportMode.non_network_walk, f0.scenario, 5, 1.0));
+//            routingModules.put("zoomer",
+//                    new TeleportationRoutingModule("zoomer", f0.scenario, 1000., 1.));
+//
+//            PlanCalcScoreConfigGroup.ModeParams modeParams = new PlanCalcScoreConfigGroup.ModeParams("zoomer");
+//            modeParams.setMarginalUtilityOfTraveling(0.);
+//            f0.scenario.getConfig().planCalcScore().addModeParams(modeParams);
+//
+//            f0.srrConfig.setUseIntermodalAccessEgress(true);
+//            IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
+//            walkAccess.setMode(TransportMode.walk);
+//            walkAccess.setRadius(0); // should not be limiting factor
+//            walkAccess.setInitialSearchRadius(0); // Should include stops B and C and D
+//            walkAccess.setSearchExtensionRadius(0); // includes D (if neccessary)
+////            walkAccess.setStopFilterAttribute("walkAccessible");
+////            walkAccess.setStopFilterValue("true");
+//            f0.srrConfig.addIntermodalAccessEgress(walkAccess);
+//
+//            f0.srrConfig.setUseIntermodalAccessEgress(true);
+//            IntermodalAccessEgressParameterSet zoomerAccess = new IntermodalAccessEgressParameterSet();
+//            zoomerAccess.setMode("zoomer");
+//            zoomerAccess.setRadius(10000000); // should not be limiting factor
+//            zoomerAccess.setInitialSearchRadius(1100); // Should include stops B and C and D
+//            zoomerAccess.setSearchExtensionRadius(1100); // includes D (if neccessary)
+//            zoomerAccess.setStopFilterAttribute("zoomerAccessible");
+//            zoomerAccess.setStopFilterValue("true");
+//            f0.srrConfig.addIntermodalAccessEgress(zoomerAccess);
+//
+//            SwissRailRaptorData data = SwissRailRaptorData.create(f0.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f0.config), f0.scenario.getNetwork());
+//            DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(null, new DefaultRaptorIntermodalAccessEgress(), routingModules);
+//            SwissRailRaptor raptor = new SwissRailRaptor(data, new DefaultRaptorParametersForPerson(f0.scenario.getConfig()),
+//                    new LeastCostRaptorRouteSelector(), stopFinder, null);
+//
+//            List<Leg> legs = raptor.calcRoute(fromFac, toFac, 7 * 3600, f0.dummyPerson);
+//            for (Leg leg : legs) {
+//                System.out.println(leg);
+//            }
+//
+//            Assert.assertEquals("wrong number of legs.", 3, legs.size());
+//            Leg leg = legs.get(0);
+//            Assert.assertEquals("zoomer", leg.getMode());
+//            Assert.assertEquals(Id.create("AA", Link.class), leg.getRoute().getStartLinkId());
+//            Assert.assertEquals(Id.create("DD", Link.class), leg.getRoute().getEndLinkId());
+//            leg = legs.get(1);
+//            Assert.assertEquals(TransportMode.pt, leg.getMode());
+//            Assert.assertEquals(Id.create("DD", Link.class), leg.getRoute().getStartLinkId());
+//            Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getEndLinkId());
+//            leg = legs.get(2);
+//            Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
+//            Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getStartLinkId());
+//            Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getEndLinkId());
 
 
         }
@@ -1612,7 +1700,7 @@ public class SwissRailRaptorIntermodalTest {
         final Config config;
         final Scenario scenario;
         final Person dummyPerson;
-        final Map<String, RoutingModule> routingModules;
+//        final Map<String, RoutingModule> routingModules;
 
         final double offsetB;
         double offsetC;
@@ -1715,8 +1803,8 @@ public class SwissRailRaptorIntermodalTest {
             stopE.setLinkId(linkEE.getId());
             stopX.setLinkId(linkXX.getId());
 
-            stopC.getAttributes().putAttribute("walkAccessible", "true");
-            stopD.getAttributes().putAttribute("walkAccessible", "true");
+//            stopC.getAttributes().putAttribute("walkAccessible", "true");
+//            stopD.getAttributes().putAttribute("walkAccessible", "true");
 
             schedule.addStopFacility(stopB);
             schedule.addStopFacility(stopC);
@@ -1787,24 +1875,27 @@ public class SwissRailRaptorIntermodalTest {
 
             // ---
 
-            this.routingModules = new HashMap<>();
-            this.routingModules.put(TransportMode.walk,
-                    new TeleportationRoutingModule(TransportMode.walk, this.scenario, 1.1, 1.3));
-            this.routingModules.put(TransportMode.non_network_walk,
-                    new TeleportationRoutingModule(TransportMode.non_network_walk, this.scenario, 1.1, 1.3));
-            this.routingModules.put(TransportMode.bike,
-                    new TeleportationRoutingModule(TransportMode.bike, this.scenario, 10, 1.4)); // make bike very fast
+//            this.routingModules = new HashMap<>();
+//            this.routingModules.put(TransportMode.walk,
+//                    new TeleportationRoutingModule(TransportMode.walk, this.scenario, 1.1, 1.3));
+//            this.routingModules.put(TransportMode.non_network_walk,
+//                    new TeleportationRoutingModule(TransportMode.non_network_walk, this.scenario, 1.1, 1.3));
+//            this.routingModules.put(TransportMode.bike,
+//                    new TeleportationRoutingModule(TransportMode.bike, this.scenario, 10, 1.4)); // make bike very fast
 
             // we need to set special values for walk and bike as the defaults are the same for walk, bike and waiting
             // which would result in all options having the same cost in the end.
-            this.config.planCalcScore().getModes().get(TransportMode.walk).setMarginalUtilityOfTraveling(-7);
-            this.config.planCalcScore().getModes().get(TransportMode.bike).setMarginalUtilityOfTraveling(-8);
 
-            this.config.transitRouter().setMaxBeelineWalkConnectionDistance(150);
 
-            PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams(TransportMode.transit_walk);
-            transitWalk.setMarginalUtilityOfTraveling(0);
-            this.config.planCalcScore().addModeParams(transitWalk);
+            //jr
+//            this.config.planCalcScore().getModes().get(TransportMode.walk).setMarginalUtilityOfTraveling(-7);
+//            this.config.planCalcScore().getModes().get(TransportMode.bike).setMarginalUtilityOfTraveling(-8);
+//
+//            this.config.transitRouter().setMaxBeelineWalkConnectionDistance(150);
+
+//            PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams(TransportMode.transit_walk);
+//            transitWalk.setMarginalUtilityOfTraveling(0);
+//            this.config.planCalcScore().addModeParams(transitWalk);
 
             /*
              * Prior to non_network_walk the utilities of access_walk and egress_walk were set to 0 here.
@@ -1820,11 +1911,16 @@ public class SwissRailRaptorIntermodalTest {
              * Furthermore, this is additional cost for the path including bike, so we are on the safe side with that
              * change. - gleich aug'19
              */
-            PlanCalcScoreConfigGroup.ModeParams nonNetworkWalk = new PlanCalcScoreConfigGroup.ModeParams(TransportMode.non_network_walk);
-            nonNetworkWalk.setMarginalUtilityOfTraveling(-7);
-            this.config.planCalcScore().addModeParams(nonNetworkWalk);
 
-            this.srrConfig.setUseIntermodalAccessEgress(true);
+
+            //jr
+//            PlanCalcScoreConfigGroup.ModeParams nonNetworkWalk = new PlanCalcScoreConfigGroup.ModeParams(TransportMode.non_network_walk);
+//            nonNetworkWalk.setMarginalUtilityOfTraveling(-7);
+//            this.config.planCalcScore().addModeParams(nonNetworkWalk);
+//
+//            this.srrConfig.setUseIntermodalAccessEgress(true);
+
+
 //            IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
 //            walkAccess.setMode(TransportMode.walk);
 //            walkAccess.setRadius(500);
