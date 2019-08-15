@@ -18,6 +18,7 @@ import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.Transit;
+import org.matsim.core.utils.collections.QuadTree;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.Facility;
@@ -156,7 +157,32 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 				//jr end
 
 				if (stopFacilities.size() < 2) {
-					TransitStopFacility  nearestStop = data.stopsQT.getClosest(x, y);
+					// jr start
+					Collection<TransitStopFacility> allStops = data.stopsQT.getDisk(x, y, paramset.getRadius());
+					TransitStopFacility stopSave = null;
+					double distSave = 1000000 ;
+					double dist ;
+
+					for (TransitStopFacility stop : allStops ) {
+						boolean filterMatches = true;
+						if (stopFilterAttribute != null) {
+							Object attr = stop.getAttributes().getAttribute(stopFilterAttribute);
+							String attrValue = attr == null ? null : attr.toString();
+							filterMatches = stopFilterValue.equals(attrValue);
+						}
+						dist = CoordUtils.calcEuclideanDistance(facility.getCoord(), stop.getCoord());
+
+						if (filterMatches && (dist < distSave)) {
+							stopSave = stop;
+							distSave = dist;
+						}
+					}
+					TransitStopFacility  nearestStop ;
+					if (stopSave != null)
+						nearestStop = stopSave ;
+					else
+						nearestStop = data.stopsQT.getClosest(x, y); // jr: unsure about this...
+					// jr end
 					double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
 					double newSearchRadius = Math.min( nearestDistance + paramset.getSearchExtensionRadius(), paramset.getRadius() );
 					stopFacilities = data.stopsQT.getDisk(x, y, newSearchRadius);
