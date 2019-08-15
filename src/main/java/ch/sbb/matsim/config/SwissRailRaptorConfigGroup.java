@@ -18,11 +18,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 /**
  * @author mrieser / SBB
  */
 public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
 
+	private static final Logger log = Logger.getLogger(SwissRailRaptorConfigGroup.class);
     public static final String GROUP = "swissRailRaptor";
 
     private static final String PARAM_USE_RANGE_QUERY = "useRangeQuery";
@@ -381,6 +384,8 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
         private static final String PARAM_MODE = "mode";
         private static final String PARAM_DIRECTIONS = "directions";
         private static final String PARAM_RADIUS = "radius";
+        private static final String PARAM_INITIAL_SEARCH_RADIUS = "initialSearchRadius";
+        private static final String PARAM_SEARCH_EXTENSION_RADIUS = "searchExtensionRadius";
         private static final String PARAM_LINKID_ATTRIBUTE = "linkIdAttribute";
         private static final String PARAM_PERSON_FILTER_ATTRIBUTE = "personFilterAttribute";
         private static final String PARAM_PERSON_FILTER_VALUE = "personFilterValue";
@@ -390,6 +395,8 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
         private String mode;
         private Set<Direction> directions;
         private double radius;
+        private double initialSearchRadius;
+        private double searchExtensionRadius;
         private String linkIdAttribute;
         private String personFilterAttribute;
         private String personFilterValue;
@@ -450,6 +457,37 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
         @StringSetter(PARAM_RADIUS)
         public void setRadius(double radius) {
             this.radius = radius;
+            // check for consistency
+            if (radius < initialSearchRadius) {
+            	log.info("radius is smaller than initialSearchRadius. Setting initialSearchRadius:=radius");
+            	initialSearchRadius = radius;
+            }
+        }
+        
+        @StringGetter(PARAM_INITIAL_SEARCH_RADIUS)
+        public double getInitialSearchRadius() {
+            return initialSearchRadius;
+        }
+
+        @StringSetter(PARAM_INITIAL_SEARCH_RADIUS)
+        public void setInitialSearchRadius(double initialSearchRadius) {
+            // check for consistency
+        	if (initialSearchRadius <= radius) {
+                this.initialSearchRadius = initialSearchRadius;
+        	} else {
+            	log.info("radius is smaller than initialSearchRadius. Setting initialSearchRadius:=radius");
+            	initialSearchRadius = radius;
+        	}
+        }
+        
+        @StringGetter(PARAM_SEARCH_EXTENSION_RADIUS)
+        public double getSearchExtensionRadius() {
+            return searchExtensionRadius;
+        }
+
+        @StringSetter(PARAM_SEARCH_EXTENSION_RADIUS)
+        public void setSearchExtensionRadius(double searchExtensionRadius) {
+            this.searchExtensionRadius = searchExtensionRadius;
         }
 
         @StringGetter(PARAM_LINKID_ATTRIBUTE)
@@ -510,6 +548,9 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
             map.put(PARAM_STOP_FILTER_VALUE, "Only stops where the filter attribute has the value specified here will be considered as access or egress stops.");
             map.put(PARAM_PERSON_FILTER_ATTRIBUTE, "Name of the person attribute used to figure out if this access/egress mode is available to the person.");
             map.put(PARAM_PERSON_FILTER_VALUE, "Only persons where the filter attribute has the value specified here can use this mode for access or egress. The attribute should be of type String.");
+            map.put(PARAM_RADIUS, "Radius from the origin / destination coord in which transit stops are accessible by this mode.");
+            map.put(PARAM_INITIAL_SEARCH_RADIUS, "Radius from the origin / destination coord in which transit stops are searched. Only if less than 2 transit stops are found the search radius is increased step-wise until the maximum search radius set in param radius is reached.");
+            map.put(PARAM_SEARCH_EXTENSION_RADIUS, "If less than 2 stops were found in initialSearchRadius take the distance of the closest transit stop and add this extension radius to search again.The search radius will not exceed the maximum search radius set in param radius.");
             return map;
         }
     }

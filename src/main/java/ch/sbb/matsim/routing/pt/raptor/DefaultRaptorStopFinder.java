@@ -38,13 +38,13 @@ import java.util.stream.Collectors;
  */
 public class DefaultRaptorStopFinder implements RaptorStopFinder {
 
-	private final ObjectAttributes personAttributes;
+//	private final ObjectAttributes personAttributes;
 	private final RaptorIntermodalAccessEgress intermodalAE;
 	private final Map<String, RoutingModule> routingModules;
 
 	@Inject
 	public DefaultRaptorStopFinder(Population population, Config config, RaptorIntermodalAccessEgress intermodalAE, Map<String, Provider<RoutingModule>> routingModuleProviders) {
-		this.personAttributes = population == null ? null : population.getPersonAttributes();
+//		this.personAttributes = population == null ? null : population.getPersonAttributes();
 		this.intermodalAE = intermodalAE;
 
 		SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
@@ -58,7 +58,7 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 	}
 
 	public DefaultRaptorStopFinder(Population population, RaptorIntermodalAccessEgress intermodalAE, Map<String, RoutingModule> routingModules) {
-		this.personAttributes = population == null ? null : population.getPersonAttributes();
+//		this.personAttributes = population == null ? null : population.getPersonAttributes();
 		this.intermodalAE = intermodalAE;
 		this.routingModules = routingModules;
 	}
@@ -119,7 +119,6 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 				// this access/egress mode is not allowed for the direction we are looking at. Skip it.
 				continue;
 			}
-			double radius = paramset.getRadius();
 			String mode = paramset.getMode();
 			String overrideMode = null;
 			if (mode.equals(TransportMode.walk) || mode.equals(TransportMode.transit_walk)) {
@@ -138,13 +137,21 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 
 			boolean personMatches = true;
 			if (personFilterAttribute != null) {
-				Object attr = this.personAttributes.getAttribute(personId, personFilterAttribute);
+//				Object attr = this.personAttributes.getAttribute(personId, personFilterAttribute);
+				Object attr = person.getAttributes().getAttribute( personFilterAttribute ) ;
 				String attrValue = attr == null ? null : attr.toString();
 				personMatches = personFilterValue.equals(attrValue);
 			}
 
 			if (personMatches) {
-				Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, radius);
+				Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, paramset.getInitialSearchRadius());
+				if (stopFacilities.size() < 2) {
+					TransitStopFacility  nearestStop = data.stopsQT.getClosest(x, y);
+					double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
+					double newSearchRadius = Math.max( nearestDistance + paramset.getSearchExtensionRadius(), paramset.getRadius() );
+					stopFacilities = data.stopsQT.getDisk(x, y, newSearchRadius);
+				}
+				
 				for (TransitStopFacility stop : stopFacilities) {
 					boolean filterMatches = true;
 					if (stopFilterAttribute != null) {

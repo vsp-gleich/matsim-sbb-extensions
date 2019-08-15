@@ -38,27 +38,27 @@ public class SwissRailRaptor implements TransitRouter {
     private final RaptorRouteSelector defaultRouteSelector;
     private final RaptorStopFinder stopFinder;
     private final String subpopulationAttribute;
-    private final ObjectAttributes personAttributes;
+//    private final ObjectAttributes personAttributes;
 
     private boolean treeWarningShown = false;
 
     public SwissRailRaptor(final SwissRailRaptorData data, RaptorParametersForPerson parametersForPerson,
                            RaptorRouteSelector routeSelector, RaptorStopFinder stopFinder) {
-        this(data, parametersForPerson, routeSelector, stopFinder, null, null);
+        this(data, parametersForPerson, routeSelector, stopFinder, null );
         log.info("SwissRailRaptor was initialized without support for subpopulations or intermodal access/egress legs.");
     }
 
-    public SwissRailRaptor(final SwissRailRaptorData data, RaptorParametersForPerson parametersForPerson,
-                           RaptorRouteSelector routeSelector,
-                           RaptorStopFinder stopFinder,
-                           String subpopulationAttribute, ObjectAttributes personAttributes) {
+    public SwissRailRaptor( final SwissRailRaptorData data, RaptorParametersForPerson parametersForPerson,
+				    RaptorRouteSelector routeSelector,
+				    RaptorStopFinder stopFinder,
+				    String subpopulationAttribute ) {
         this.data = data;
         this.raptor = new SwissRailRaptorCore(data);
         this.parametersForPerson = parametersForPerson;
         this.defaultRouteSelector = routeSelector;
         this.stopFinder = stopFinder;
         this.subpopulationAttribute = subpopulationAttribute;
-        this.personAttributes = personAttributes;
+//        this.personAttributes = personAttributes;
     }
 
     @Override
@@ -76,7 +76,11 @@ public class SwissRailRaptor implements TransitRouter {
         if (foundRoute == null || foundRoute.parts.size() == 0 /* || directWalk.getTotalCosts() < foundRoute.getTotalCosts() */) {
 //		  log.warn( "foundRouteCost=" + foundRoute.getTotalCosts() ) ;
 //		  log.warn( "directWalkCost=" + directWalk.getTotalCosts() ) ;
-        	log.warn("No route found for person " + person.getId() + ": trip from x=" + fromFacility.getCoord().getX() + ",y=" + fromFacility.getCoord().getY() + " departure at " + departureTime + " to x=" + toFacility.getCoord().getX() + ",y=" + toFacility.getCoord().getY());
+        	if (person == null) {
+            	log.warn("No route found for person null: trip from x=" + fromFacility.getCoord().getX() + ",y=" + fromFacility.getCoord().getY() + " departure at " + departureTime + " to x=" + toFacility.getCoord().getX() + ",y=" + toFacility.getCoord().getY());
+        	} else {
+            	log.warn("No route found for person " + person.getId() + ": trip from x=" + fromFacility.getCoord().getX() + ",y=" + fromFacility.getCoord().getY() + " departure at " + departureTime + " to x=" + toFacility.getCoord().getX() + ",y=" + toFacility.getCoord().getY());
+        	}
             foundRoute = directWalk;
         }
         
@@ -87,7 +91,8 @@ public class SwissRailRaptor implements TransitRouter {
     private List<Leg> performRangeQuery(Facility fromFacility, Facility toFacility, double desiredDepartureTime, Person person, RaptorParameters parameters) {
         SwissRailRaptorConfigGroup srrConfig = parameters.getConfig();
 
-        Object attr = this.personAttributes.getAttribute(person.getId().toString(), this.subpopulationAttribute);
+//        Object attr = this.personAttributes.getAttribute(person.getId().toString(), this.subpopulationAttribute);
+	    Object attr = person.getAttributes().getAttribute( this.subpopulationAttribute ) ;
         String subpopulation = attr == null ? null : attr.toString();
         SwissRailRaptorConfigGroup.RangeQuerySettingsParameterSet rangeSettings = srrConfig.getRangeQuerySettings(subpopulation);
 

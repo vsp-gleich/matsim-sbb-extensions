@@ -55,7 +55,7 @@ public class SwissRailRaptorFactory implements Provider<SwissRailRaptor> {
     public SwissRailRaptor get() {
         SwissRailRaptorData data = getData();
         return new SwissRailRaptor(data, this.raptorParametersForPerson, this.routeSelector, this.stopFinderProvider.get(),
-                this.plansConfigGroup.getSubpopulationAttributeName(), this.population.getPersonAttributes());
+                this.plansConfigGroup.getSubpopulationAttributeName() );
     }
 
     private SwissRailRaptorData getData() {
