@@ -144,6 +144,7 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 				Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, paramset.getInitialSearchRadius());
 
 				//jr start
+				// This part removes stops from stopFacilities, if they do not fulfill the stopFilterAttribute
 				for (Iterator<TransitStopFacility> it = stopFacilities.iterator(); it.hasNext(); ) {
 					TransitStopFacility stop = it.next() ;
 					boolean filterMatches = true;
@@ -158,9 +159,13 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 
 				if (stopFacilities.size() < 2) {
 					// jr start
+					// The section takes all the stops within the general radius, and finds the stop that is closest to
+					// agents, while also fulfilling the StopFilterAttribute. If no fitting stops can be found, (i.e.
+					// nearestStop = null ), then the continue command is invoked, and the next intermodal access/egress
+					// mode is handled.
 					Collection<TransitStopFacility> allStops = data.stopsQT.getDisk(x, y, paramset.getRadius());
 					TransitStopFacility stopSave = null;
-					double distSave = 1000000 ;
+					double distSave = Double.POSITIVE_INFINITY ;
 					double dist ;
 
 					for (TransitStopFacility stop : allStops ) {
@@ -178,10 +183,10 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 						}
 					}
 					TransitStopFacility  nearestStop ;
-					if (stopSave != null)
-						nearestStop = stopSave ;
-					else
-						nearestStop = data.stopsQT.getClosest(x, y); // jr: unsure about this...
+					nearestStop = stopSave ;
+
+					if (nearestStop == null)
+						continue;
 					// jr end
 					double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
 					double newSearchRadius = Math.min( nearestDistance + paramset.getSearchExtensionRadius(), paramset.getRadius() );
