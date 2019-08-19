@@ -454,7 +454,7 @@ public class SwissRailRaptorIntermodalTest {
         Assert.assertEquals("DD", legPT.getRoute().getEndLinkId().toString());
 
         Leg legAccess = legs.get(4);
-        Assert.assertEquals("egress_walk", legAccess.getMode());
+        Assert.assertEquals("non_network_walk", legAccess.getMode());
         Assert.assertEquals("DD", legAccess.getRoute().getStartLinkId().toString());
         Assert.assertEquals("to", legAccess.getRoute().getEndLinkId().toString());
     }
@@ -480,7 +480,7 @@ public class SwissRailRaptorIntermodalTest {
         SwissRailRaptorData data = SwissRailRaptorData.create(f.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f.config), f.scenario.getNetwork());
         DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(null, new DefaultRaptorIntermodalAccessEgress(), f.routingModules);
         SwissRailRaptor raptor = new SwissRailRaptor(data, new DefaultRaptorParametersForPerson(f.scenario.getConfig()),
-            new LeastCostRaptorRouteSelector(), stopFinder, null, null);
+            new LeastCostRaptorRouteSelector(), stopFinder, null);
 
         List<Leg> legs = raptor.calcRoute(fromFac, toFac, 7.5 * 3600 + 900, f.dummyPerson);
         for (Leg leg : legs) {
@@ -490,7 +490,7 @@ public class SwissRailRaptorIntermodalTest {
         Assert.assertEquals(3, legs.size());
 
         Leg legAccess = legs.get(0);
-        Assert.assertEquals("access_walk", legAccess.getMode());
+        Assert.assertEquals("non_network_walk", legAccess.getMode());
         Assert.assertEquals("from", legAccess.getRoute().getStartLinkId().toString());
         Assert.assertEquals("EE", legAccess.getRoute().getEndLinkId().toString());
 
@@ -500,7 +500,7 @@ public class SwissRailRaptorIntermodalTest {
         Assert.assertEquals("FF", legPT.getRoute().getEndLinkId().toString());
 
         Leg legEgress = legs.get(2);
-        Assert.assertEquals("egress_walk", legEgress.getMode());
+        Assert.assertEquals("non_network_walk", legEgress.getMode());
         Assert.assertEquals("FF", legEgress.getRoute().getStartLinkId().toString());
         Assert.assertEquals("to", legEgress.getRoute().getEndLinkId().toString());
 
@@ -526,7 +526,7 @@ public class SwissRailRaptorIntermodalTest {
         Assert.assertTrue(legs.size() == 5);
 
         Leg legAccess = legs.get(0);
-        Assert.assertEquals("access_walk", legAccess.getMode());
+        Assert.assertEquals("non_network_walk", legAccess.getMode());
         Assert.assertEquals("from", legAccess.getRoute().getStartLinkId().toString());
         Assert.assertEquals("DD", legAccess.getRoute().getEndLinkId().toString());
 
