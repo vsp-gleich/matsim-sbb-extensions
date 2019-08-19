@@ -185,6 +185,218 @@ public class RaptorStopFinderTest {
     }
 
     @Test
+    public void testDefaultStopFinder_EmptyInitialSearchRadius_StopFilterAttributes() {
+        /* Initial_Search_Radius and General Radius contain only stop B.
+        Stop B is not "walkAccessible"; all other stops are "walkAccessible" Search_Extension_Radius is 0
+        Expected: StopFinder will find no stops, since closest accessible stop is outside of general radius. Therefore
+        agent will use transit_walk to get from A to X.
+         */
+
+//        {
+//            StopFinderFixture f0 = new StopFinderFixture(1., 1., 1., 1.);
+//
+//
+//            String[] walkAccessibleStops = new String[]{"C","D","E"};
+//            for (String stop : walkAccessibleStops) {
+//                f0.scenario.getTransitSchedule().getFacilities().get(Id.create(stop, TransitStopFacility.class)).getAttributes().putAttribute("walkAccessible", "true") ;
+//            }
+//
+//            Map<String, RoutingModule> routingModules = new HashMap<>();
+//            routingModules.put(TransportMode.walk,
+//                    new TeleportationRoutingModule(TransportMode.walk, f0.scenario, 1000., 1.0));
+//            routingModules.put(TransportMode.non_network_walk,
+//                    new TeleportationRoutingModule(TransportMode.non_network_walk, f0.scenario, 1000., 1.0));
+//
+//            f0.srrConfig.setUseIntermodalAccessEgress(true);
+//            SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
+//            walkAccess.setMode(TransportMode.walk);
+//            walkAccess.setRadius(600); // Includes stop B (not "walkAccessible")
+//            walkAccess.setInitialSearchRadius(600);  // Includes stop B (not "walkAccessible")
+//            walkAccess.setSearchExtensionRadius(0);
+//            walkAccess.setStopFilterAttribute("walkAccessible");
+//            walkAccess.setStopFilterValue("true");
+//            f0.srrConfig.addIntermodalAccessEgress(walkAccess);
+//
+//            SwissRailRaptorData data = SwissRailRaptorData.create(f0.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f0.config), f0.scenario.getNetwork());
+//            DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(null, new DefaultRaptorIntermodalAccessEgress(), routingModules);
+//            SwissRailRaptor raptor = new SwissRailRaptor(data, new DefaultRaptorParametersForPerson(f0.scenario.getConfig()),
+//                    new LeastCostRaptorRouteSelector(), stopFinder, null);
+//
+//            List<Leg> legs = raptor.calcRoute(fromFac, toFac, 7 * 3600, f0.dummyPerson);
+//            for (Leg leg : legs) {
+//                System.out.println(leg);
+//            }
+//
+//            Assert.assertEquals("wrong number of legs.", 1, legs.size());
+//            Leg leg = legs.get(0);
+//            Assert.assertEquals(TransportMode.transit_walk, leg.getMode());
+//            Assert.assertEquals(Id.create("AA", Link.class), leg.getRoute().getStartLinkId());
+//            Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getEndLinkId());
+//
+//        }
+
+        /* General Radius includes stop B. Search_Extension_Radius is 0.
+        B is "walkAccessible"
+        Expected: Stop Finder will only find stop B. Lines C, D, and E are set to very fast, so as to check that only
+        stop B is included.
+         */
+        {
+            StopFinderFixture f0 = new StopFinderFixture(600., 1., 1., 1.);
+
+            String[] walkAccessibleStops = new String[]{"B", "X"};
+            for (String stop : walkAccessibleStops) {
+                f0.scenario.getTransitSchedule().getFacilities().get(Id.create(stop, TransitStopFacility.class)).getAttributes().putAttribute("walkAccessible", "true") ;
+            }
+            Map<String, RoutingModule> routingModules = new HashMap<>();
+            routingModules.put(TransportMode.walk,
+                    new TeleportationRoutingModule(TransportMode.walk, f0.scenario, 1000., 1.0));
+            routingModules.put(TransportMode.non_network_walk,
+                    new TeleportationRoutingModule(TransportMode.non_network_walk, f0.scenario, 1000., 1.0));
+
+            f0.srrConfig.setUseIntermodalAccessEgress(true);
+            SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
+            walkAccess.setMode(TransportMode.walk);
+            walkAccess.setRadius(600); // Includes stop B
+            walkAccess.setInitialSearchRadius(300); // Includes no stops
+            walkAccess.setSearchExtensionRadius(0);
+            f0.srrConfig.addIntermodalAccessEgress(walkAccess);
+
+            SwissRailRaptorData data = SwissRailRaptorData.create(f0.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f0.config), f0.scenario.getNetwork());
+            DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(null, new DefaultRaptorIntermodalAccessEgress(), routingModules);
+            SwissRailRaptor raptor = new SwissRailRaptor(data, new DefaultRaptorParametersForPerson(f0.scenario.getConfig()),
+                    new LeastCostRaptorRouteSelector(), stopFinder, null);
+
+            List<Leg> legs = raptor.calcRoute(fromFac, toFac, 7 * 3600, f0.dummyPerson);
+            for (Leg leg : legs) {
+                System.out.println(leg);
+            }
+
+            Assert.assertEquals("wrong number of legs.", 3, legs.size());
+            Leg leg = legs.get(0);
+            Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
+            Assert.assertEquals(Id.create("AA", Link.class), leg.getRoute().getStartLinkId());
+            Assert.assertEquals(Id.create("BB", Link.class), leg.getRoute().getEndLinkId());
+            leg = legs.get(1);
+            Assert.assertEquals(TransportMode.pt, leg.getMode());
+            Assert.assertEquals(Id.create("BB", Link.class), leg.getRoute().getStartLinkId());
+            Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getEndLinkId());
+            leg = legs.get(2);
+            Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
+            Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getStartLinkId());
+            Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getEndLinkId());
+
+        }
+
+        /* Initial_Search_Radius includes B (not "walkAccessible"). General Radius includes stop B and C. Search_Extension_Radius is 0.
+        Expected: Stop Finder will only find stop C. Lines B, D, and E are set to very fast, so as to check that only
+        stop C is included.
+         */
+        {
+            StopFinderFixture f0 = new StopFinderFixture(1., 600., 1., 1.);
+
+            String[] walkAccessibleStops = new String[]{"C","D","E"};
+            for (String stop : walkAccessibleStops) {
+                f0.scenario.getTransitSchedule().getFacilities().get(Id.create(stop, TransitStopFacility.class)).getAttributes().putAttribute("walkAccessible", "true") ;
+            }
+            Map<String, RoutingModule> routingModules = new HashMap<>();
+            routingModules.put(TransportMode.walk,
+                    new TeleportationRoutingModule(TransportMode.walk, f0.scenario, 1000., 1.0));
+            routingModules.put(TransportMode.non_network_walk,
+                    new TeleportationRoutingModule(TransportMode.non_network_walk, f0.scenario, 1000., 1.0));
+
+            f0.srrConfig.setUseIntermodalAccessEgress(true);
+            SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
+            walkAccess.setMode(TransportMode.walk);
+            walkAccess.setRadius(1100); // Includes stops B and C
+            walkAccess.setInitialSearchRadius(600); // Includes stop B (not "walkAccessible")
+            walkAccess.setSearchExtensionRadius(0);
+            walkAccess.setStopFilterAttribute("walkAccessible");
+            walkAccess.setStopFilterValue("true");
+            f0.srrConfig.addIntermodalAccessEgress(walkAccess);
+
+            SwissRailRaptorData data = SwissRailRaptorData.create(f0.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f0.config), f0.scenario.getNetwork());
+            DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(null, new DefaultRaptorIntermodalAccessEgress(), routingModules);
+            SwissRailRaptor raptor = new SwissRailRaptor(data, new DefaultRaptorParametersForPerson(f0.scenario.getConfig()),
+                    new LeastCostRaptorRouteSelector(), stopFinder, null);
+
+            List<Leg> legs = raptor.calcRoute(fromFac, toFac, 7 * 3600, f0.dummyPerson);
+            for (Leg leg : legs) {
+                System.out.println(leg);
+            }
+
+            Assert.assertEquals("wrong number of legs.", 3, legs.size());
+            Leg leg = legs.get(0);
+            Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
+            Assert.assertEquals(Id.create("AA", Link.class), leg.getRoute().getStartLinkId());
+            Assert.assertEquals(Id.create("CC", Link.class), leg.getRoute().getEndLinkId());
+            leg = legs.get(1);
+            Assert.assertEquals(TransportMode.pt, leg.getMode());
+            Assert.assertEquals(Id.create("CC", Link.class), leg.getRoute().getStartLinkId());
+            Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getEndLinkId());
+            leg = legs.get(2);
+            Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
+            Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getStartLinkId());
+            Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getEndLinkId());
+
+        }
+
+        /* General Radius includes B, C, D, and E
+        Search_Extension_Radius includes B, C, D
+        All stops are "walkAccessible" except for line B.
+        Expected: Stop D should be chosen, since line D is faster than lines B and C. Line E is super fast, but shouldn't
+        be chosen since it is not within Search_Extension_Radius. Line B is super fast, but shouldn't be chosen since it
+        is not "walkAccessible".
+         */
+//        {
+//            StopFinderFixture f0 = new StopFinderFixture(1., 20.*60, 10*60., 1.);
+//
+//            String[] walkAccessibleStops = new String[]{"C","D","E"};
+//            for (String stop : walkAccessibleStops) {
+//                f0.scenario.getTransitSchedule().getFacilities().get(Id.create(stop, TransitStopFacility.class)).getAttributes().putAttribute("walkAccessible", "true") ;
+//            }
+//
+//            Map<String, RoutingModule> routingModules = new HashMap<>();
+//            routingModules.put(TransportMode.walk,
+//                    new TeleportationRoutingModule(TransportMode.walk, f0.scenario, 1.1, 1.3));
+//            routingModules.put(TransportMode.non_network_walk,
+//                    new TeleportationRoutingModule(TransportMode.non_network_walk, f0.scenario, 1000., 1.0));
+//
+//            f0.srrConfig.setUseIntermodalAccessEgress(true);
+//            SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
+//            walkAccess.setMode(TransportMode.walk);
+//            walkAccess.setRadius(10000000); // should not be limiting factor
+//            walkAccess.setInitialSearchRadius(300); // Includes no stops
+//            walkAccess.setSearchExtensionRadius(1100);
+//            f0.srrConfig.addIntermodalAccessEgress(walkAccess);
+//
+//            SwissRailRaptorData data = SwissRailRaptorData.create(f0.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f0.config), f0.scenario.getNetwork());
+//            DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(null, new DefaultRaptorIntermodalAccessEgress(), routingModules);
+//            SwissRailRaptor raptor = new SwissRailRaptor(data, new DefaultRaptorParametersForPerson(f0.scenario.getConfig()),
+//                    new LeastCostRaptorRouteSelector(), stopFinder, null);
+//
+//            List<Leg> legs = raptor.calcRoute(fromFac, toFac, 7 * 3600, f0.dummyPerson);
+//            for (Leg leg : legs) {
+//                System.out.println(leg);
+//            }
+//
+//            Assert.assertEquals("wrong number of legs.", 3, legs.size());
+//            Leg leg = legs.get(0);
+//            Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
+//            Assert.assertEquals(Id.create("AA", Link.class), leg.getRoute().getStartLinkId());
+//            Assert.assertEquals(Id.create("DD", Link.class), leg.getRoute().getEndLinkId());
+//            leg = legs.get(1);
+//            Assert.assertEquals(TransportMode.pt, leg.getMode());
+//            Assert.assertEquals(Id.create("DD", Link.class), leg.getRoute().getStartLinkId());
+//            Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getEndLinkId());
+//            leg = legs.get(2);
+//            Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
+//            Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getStartLinkId());
+//            Assert.assertEquals(Id.create("XX", Link.class), leg.getRoute().getEndLinkId());
+//        }
+
+    }
+
+    @Test
     public void testRandomAccessEgressModeRaptorStopFinder_EmptyInitialSearchRadius() {
         /* General Radius includes no stops. Search_Extension_Radius is 0
         Expected: StopFinder will find no stops, since closest stop is outside of general radius. Therefore
