@@ -797,7 +797,9 @@ public class SwissRailRaptorTest {
         double beelineDistanceFactor = config.plansCalcRoute().getModeRoutingParams().get( TransportMode.walk ).getBeelineDistanceFactor();
         PlansCalcRouteConfigGroup.ModeRoutingParams walkParameters = new PlansCalcRouteConfigGroup.ModeRoutingParams(TransportMode.walk);
         walkParameters.setTeleportedModeSpeed(beelineDistanceFactor); // set it such that the beelineWalkSpeed is exactly 1
-        config.plansCalcRoute().addParameterSet(walkParameters);
+        PlansCalcRouteConfigGroup.ModeRoutingParams non_network_walkParameters = new PlansCalcRouteConfigGroup.ModeRoutingParams(TransportMode.non_network_walk);
+        non_network_walkParameters.setTeleportedModeSpeed(beelineDistanceFactor); // set it such that the beelineWalkSpeed is exactly 1
+        config.plansCalcRoute().addParameterSet(non_network_walkParameters);
 
         config.planCalcScore().setUtilityOfLineSwitch(-transferFixedCost);
         srrConfig.setTransferPenaltyBaseCost(transferFixedCost);
