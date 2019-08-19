@@ -160,67 +160,67 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 				}
 				
 				for (TransitStopFacility stop : stopFacilities) {
-						Facility stopFacility = stop;
-						if (linkIdAttribute != null) {
-							Object attr = stop.getAttributes().getAttribute(linkIdAttribute);
-							if (attr != null) {
-								stopFacility = new ChangedLinkFacility(stop, Id.create(attr.toString(), Link.class));
+					Facility stopFacility = stop;
+					if (linkIdAttribute != null) {
+						Object attr = stop.getAttributes().getAttribute(linkIdAttribute);
+						if (attr != null) {
+							stopFacility = new ChangedLinkFacility(stop, Id.create(attr.toString(), Link.class));
+						}
+					}
+
+					List<? extends PlanElement> routeParts;
+					if (direction == Direction.ACCESS) {
+						RoutingModule module = this.routingModules.get(mode);
+						routeParts = module.calcRoute(facility, stopFacility, departureTime, person);
+					} else { // it's Egress
+						// We don't know the departure time for the egress trip, so just use the original departureTime,
+						// although it is wrong and might result in a wrong traveltime and thus wrong route.
+						RoutingModule module = this.routingModules.get(mode);
+						routeParts = module.calcRoute(stopFacility, facility, departureTime, person);
+						// clear the (wrong) departureTime so users don't get confused
+						for (PlanElement pe : routeParts) {
+							if (pe instanceof Leg) {
+								((Leg) pe).setDepartureTime(Time.getUndefinedTime());
 							}
 						}
-
-						List<? extends PlanElement> routeParts;
+					}
+					if (overrideMode != null) {
+						for (PlanElement pe : routeParts) {
+							if (pe instanceof Leg) {
+								((Leg) pe).setMode(overrideMode);
+							}
+						}
+					}
+					if (stopFacility != stop) {
 						if (direction == Direction.ACCESS) {
-							RoutingModule module = this.routingModules.get(mode);
-							routeParts = module.calcRoute(facility, stopFacility, departureTime, person);
-						} else { // it's Egress
-							// We don't know the departure time for the egress trip, so just use the original departureTime,
-							// although it is wrong and might result in a wrong traveltime and thus wrong route.
-							RoutingModule module = this.routingModules.get(mode);
-							routeParts = module.calcRoute(stopFacility, facility, departureTime, person);
-							// clear the (wrong) departureTime so users don't get confused
-							for (PlanElement pe : routeParts) {
-								if (pe instanceof Leg) {
-									((Leg) pe).setDepartureTime(Time.getUndefinedTime());
-								}
-							}
-						}
-						if (overrideMode != null) {
-							for (PlanElement pe : routeParts) {
-								if (pe instanceof Leg) {
-									((Leg) pe).setMode(overrideMode);
-								}
-							}
-						}
-						if (stopFacility != stop) {
-							if (direction == Direction.ACCESS) {
-								Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
-								Route transferRoute = RouteUtils.createGenericRouteImpl(stopFacility.getLinkId(), stop.getLinkId());
-								transferRoute.setTravelTime(0);
-								transferRoute.setDistance(0);
-								transferLeg.setRoute(transferRoute);
-								transferLeg.setTravelTime(0);
+							Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
+							Route transferRoute = RouteUtils.createGenericRouteImpl(stopFacility.getLinkId(), stop.getLinkId());
+							transferRoute.setTravelTime(0);
+							transferRoute.setDistance(0);
+							transferLeg.setRoute(transferRoute);
+							transferLeg.setTravelTime(0);
 
-								List<PlanElement> tmp = new ArrayList<>(routeParts.size() + 1);
-								tmp.addAll(routeParts);
-								tmp.add(transferLeg);
-								routeParts = tmp;
-							} else {
-								Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
-								Route transferRoute = RouteUtils.createGenericRouteImpl(stop.getLinkId(), stopFacility.getLinkId());
-								transferRoute.setTravelTime(0);
-								transferRoute.setDistance(0);
-								transferLeg.setRoute(transferRoute);
-								transferLeg.setTravelTime(0);
+							List<PlanElement> tmp = new ArrayList<>(routeParts.size() + 1);
+							tmp.addAll(routeParts);
+							tmp.add(transferLeg);
+							routeParts = tmp;
+						} else {
+							Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
+							Route transferRoute = RouteUtils.createGenericRouteImpl(stop.getLinkId(), stopFacility.getLinkId());
+							transferRoute.setTravelTime(0);
+							transferRoute.setDistance(0);
+							transferLeg.setRoute(transferRoute);
+							transferLeg.setTravelTime(0);
 
-								List<PlanElement> tmp = new ArrayList<>(routeParts.size() + 1);
-								tmp.add(transferLeg);
-								tmp.addAll(routeParts);
-								routeParts = tmp;
-							}
+							List<PlanElement> tmp = new ArrayList<>(routeParts.size() + 1);
+							tmp.add(transferLeg);
+							tmp.addAll(routeParts);
+							routeParts = tmp;
 						}
-						RaptorIntermodalAccessEgress.RIntermodalAccessEgress accessEgress = this.intermodalAE.calcIntermodalAccessEgress(routeParts, parameters, person);
-						InitialStop iStop = new InitialStop(stop, accessEgress.disutility, accessEgress.travelTime, accessEgress.routeParts);
-						initialStops.add(iStop);
+					}
+					RaptorIntermodalAccessEgress.RIntermodalAccessEgress accessEgress = this.intermodalAE.calcIntermodalAccessEgress(routeParts, parameters, person);
+					InitialStop iStop = new InitialStop(stop, accessEgress.disutility, accessEgress.travelTime, accessEgress.routeParts);
+					initialStops.add(iStop);
 				}
 			}
 		}
