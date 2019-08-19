@@ -21,6 +21,7 @@ import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.RoutingModule;
+import org.matsim.core.utils.collections.QuadTree;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.Facility;
@@ -102,118 +103,116 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 	}
 
 	private void addInitialStopsForParamSet(Facility facility, Person person, double departureTime, Direction direction,
-			RaptorParameters parameters, SwissRailRaptorData data, double x, double y, String personId,
-			List<InitialStop> initialStops, IntermodalAccessEgressParameterSet paramset) {
-
+		RaptorParameters parameters, SwissRailRaptorData data, double x, double y, String personId,
+		List<InitialStop> initialStops, IntermodalAccessEgressParameterSet paramset) {
 			if ( !paramset.getDirections().contains(direction) ) {
-				return;
+			return;
+		}
+		double radius = paramset.getInitialSearchRadius();
+		String mode = paramset.getMode();
+		String overrideMode = null;
+		if (mode.equals(TransportMode.walk) || mode.equals(TransportMode.transit_walk)) {
+			// yyyyyy Das passt nicht zusammen mit meinen Annahmen.  "walk" kann durchaus ein "network walk" sein; das wuerde hier dann
+			// uebergebuegelt werden.  Ist diese Abfrage denn noetig?  kai, jun'19
+			// Habe gerade mal "walk" an den entscheidenden Stellen durch "bike" ersetzt; damit funktioniert es dann wie vorgesehen.  Das
+			// impliziert erstmal, dass "walk" hier problematisch ist.  Ob die Weglassung woanders Probleme macht, weiss ich nicht.  kai, jun'19
+			overrideMode = direction == Direction.ACCESS ? TransportMode.access_walk : TransportMode.egress_walk; 
+			// verweist auf eine matsim version, wo TransportMode.access_walk noch "access_walk" und nicht "non_network_walk" ist. gl jul'19
+		}
+		String linkIdAttribute = paramset.getLinkIdAttribute();
+		String personFilterAttribute = paramset.getPersonFilterAttribute();
+		String personFilterValue = paramset.getPersonFilterValue();
+		String stopFilterAttribute = paramset.getStopFilterAttribute();
+		String stopFilterValue = paramset.getStopFilterValue();
+
+		boolean personMatches = true;
+		if (personFilterAttribute != null) {
+//			Object attr = this.personAttributes.getAttribute(personId, personFilterAttribute);
+			Object attr = person.getAttributes().getAttribute( personFilterAttribute ) ;
+			String attrValue = attr == null ? null : attr.toString();
+			personMatches = personFilterValue.equals(attrValue);
+		}
+
+		if (personMatches) {
+			QuadTree<TransitStopFacility> filteredStopsQT;
+			if (stopFilterAttribute != null) {
+				data.prepareStopFilterQuadTreeIfNotExistent(stopFilterAttribute, stopFilterValue);
+				filteredStopsQT = data.stopFilterAttribute2Value2StopsQT.get(stopFilterAttribute).get(stopFilterValue);
+			} else {
+				filteredStopsQT = data.stopsQT;
 			}
-			double radius = paramset.getInitialSearchRadius();
-			String mode = paramset.getMode();
-			String overrideMode = null;
-			if (mode.equals(TransportMode.walk) || mode.equals(TransportMode.transit_walk)) {
-				// yyyyyy Das passt nicht zusammen mit meinen Annahmen.  "walk" kann durchaus ein "network walk" sein; das wuerde hier dann
-				// uebergebuegelt werden.  Ist diese Abfrage denn noetig?  kai, jun'19
-				// Habe gerade mal "walk" an den entscheidenden Stellen durch "bike" ersetzt; damit funktioniert es dann wie vorgesehen.  Das
-				// impliziert erstmal, dass "walk" hier problematisch ist.  Ob die Weglassung woanders Probleme macht, weiss ich nicht.  kai, jun'19
-				overrideMode = direction == Direction.ACCESS ? TransportMode.access_walk : TransportMode.egress_walk; 
-				// verweist auf eine matsim version, wo TransportMode.access_walk noch "access_walk" und nicht "non_network_walk" ist. gl jul'19
-			}
-			String linkIdAttribute = paramset.getLinkIdAttribute();
-			String personFilterAttribute = paramset.getPersonFilterAttribute();
-			String personFilterValue = paramset.getPersonFilterValue();
-			String stopFilterAttribute = paramset.getStopFilterAttribute();
-			String stopFilterValue = paramset.getStopFilterValue();
-
-			boolean personMatches = true;
-			if (personFilterAttribute != null) {
-//				Object attr = this.personAttributes.getAttribute(personId, personFilterAttribute);
-				Object attr = person.getAttributes().getAttribute( personFilterAttribute ) ;
-				String attrValue = attr == null ? null : attr.toString();
-				personMatches = personFilterValue.equals(attrValue);
+			Collection<TransitStopFacility> stopFacilities = filteredStopsQT.getDisk(x, y, paramset.getInitialSearchRadius());
+			if (stopFacilities.size() < 2) {
+				TransitStopFacility nearestStop = filteredStopsQT.getClosest(x, y);
+				double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
+				double newSearchRadius = Math.min(nearestDistance + paramset.getSearchExtensionRadius(), paramset.getRadius());
+				stopFacilities = filteredStopsQT.getDisk(x, y, newSearchRadius);
 			}
 
-			if (personMatches) {
-				Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, paramset.getInitialSearchRadius());
-				if (stopFacilities.size() < 2) {
-					TransitStopFacility  nearestStop = data.stopsQT.getClosest(x, y);
-					double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
-					double newSearchRadius = Math.min( nearestDistance + paramset.getSearchExtensionRadius(), paramset.getRadius() );
-					stopFacilities = data.stopsQT.getDisk(x, y, newSearchRadius);
-				}
-				for (TransitStopFacility stop : stopFacilities) {
-					boolean filterMatches = true;
-					if (stopFilterAttribute != null) {
-						Object attr = stop.getAttributes().getAttribute(stopFilterAttribute);
-						String attrValue = attr == null ? null : attr.toString();
-						filterMatches = stopFilterValue.equals(attrValue);
-					}
-					if (filterMatches) {
-						Facility stopFacility = stop;
-						if (linkIdAttribute != null) {
-							Object attr = stop.getAttributes().getAttribute(linkIdAttribute);
-							if (attr != null) {
-								stopFacility = new ChangedLinkFacility(stop, Id.create(attr.toString(), Link.class));
-							}
-						}
-
-						List<? extends PlanElement> routeParts;
-						if (direction == Direction.ACCESS) {
-							RoutingModule module = this.routingModules.get(mode);
-							routeParts = module.calcRoute(facility, stopFacility, departureTime, person);
-						} else { // it's Egress
-							// We don't know the departure time for the egress trip, so just use the original departureTime,
-							// although it is wrong and might result in a wrong traveltime and thus wrong route.
-							RoutingModule module = this.routingModules.get(mode);
-							routeParts = module.calcRoute(stopFacility, facility, departureTime, person);
-							// clear the (wrong) departureTime so users don't get confused
-							for (PlanElement pe : routeParts) {
-								if (pe instanceof Leg) {
-									((Leg) pe).setDepartureTime(Time.getUndefinedTime());
-								}
-							}
-						}
-						if (overrideMode != null) {
-							for (PlanElement pe : routeParts) {
-								if (pe instanceof Leg) {
-									((Leg) pe).setMode(overrideMode);
-								}
-							}
-						}
-						if (stopFacility != stop) {
-							if (direction == Direction.ACCESS) {
-								Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
-								Route transferRoute = RouteUtils.createGenericRouteImpl(stopFacility.getLinkId(), stop.getLinkId());
-								transferRoute.setTravelTime(0);
-								transferRoute.setDistance(0);
-								transferLeg.setRoute(transferRoute);
-								transferLeg.setTravelTime(0);
-
-								List<PlanElement> tmp = new ArrayList<>(routeParts.size() + 1);
-								tmp.addAll(routeParts);
-								tmp.add(transferLeg);
-								routeParts = tmp;
-							} else {
-								Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
-								Route transferRoute = RouteUtils.createGenericRouteImpl(stop.getLinkId(), stopFacility.getLinkId());
-								transferRoute.setTravelTime(0);
-								transferRoute.setDistance(0);
-								transferLeg.setRoute(transferRoute);
-								transferLeg.setTravelTime(0);
-
-								List<PlanElement> tmp = new ArrayList<>(routeParts.size() + 1);
-								tmp.add(transferLeg);
-								tmp.addAll(routeParts);
-								routeParts = tmp;
-							}
-						}
-						RaptorIntermodalAccessEgress.RIntermodalAccessEgress accessEgress = this.intermodalAE.calcIntermodalAccessEgress(routeParts, parameters, person);
-						InitialStop iStop = new InitialStop(stop, accessEgress.disutility, accessEgress.travelTime, accessEgress.routeParts);
-						initialStops.add(iStop);
+			for (TransitStopFacility stop : stopFacilities) {
+				Facility stopFacility = stop;
+				if (linkIdAttribute != null) {
+					Object attr = stop.getAttributes().getAttribute(linkIdAttribute);
+					if (attr != null) {
+						stopFacility = new ChangedLinkFacility(stop, Id.create(attr.toString(), Link.class));
 					}
 				}
-			}
+				
+				List<? extends PlanElement> routeParts;
+				if (direction == Direction.ACCESS) {
+					RoutingModule module = this.routingModules.get(mode);
+					routeParts = module.calcRoute(facility, stopFacility, departureTime, person);
+				} else { // it's Egress
+					// We don't know the departure time for the egress trip, so just use the original departureTime,
+					// although it is wrong and might result in a wrong traveltime and thus wrong route.
+					RoutingModule module = this.routingModules.get(mode);
+					routeParts = module.calcRoute(stopFacility, facility, departureTime, person);
+					// clear the (wrong) departureTime so users don't get confused
+					for (PlanElement pe : routeParts) {
+						if (pe instanceof Leg) {
+							((Leg) pe).setDepartureTime(Time.getUndefinedTime());
+						}
+					}
+				}
+				if (overrideMode != null) {
+					for (PlanElement pe : routeParts) {
+						if (pe instanceof Leg) {
+							((Leg) pe).setMode(overrideMode);
+						}
+					}
+				}
+				if (stopFacility != stop) {
+					if (direction == Direction.ACCESS) {
+						Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
+						Route transferRoute = RouteUtils.createGenericRouteImpl(stopFacility.getLinkId(), stop.getLinkId());
+						transferRoute.setTravelTime(0);
+						transferRoute.setDistance(0);
+						transferLeg.setRoute(transferRoute);
+						transferLeg.setTravelTime(0);
 
+						List<PlanElement> tmp = new ArrayList<>(routeParts.size() + 1);
+						tmp.addAll(routeParts);
+						tmp.add(transferLeg);
+						routeParts = tmp;
+					} else {
+						Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
+						Route transferRoute = RouteUtils.createGenericRouteImpl(stop.getLinkId(), stopFacility.getLinkId());
+						transferRoute.setTravelTime(0);
+						transferRoute.setDistance(0);
+						transferLeg.setRoute(transferRoute);
+						transferLeg.setTravelTime(0);
+
+						List<PlanElement> tmp = new ArrayList<>(routeParts.size() + 1);
+						tmp.add(transferLeg);
+						tmp.addAll(routeParts);
+						routeParts = tmp;
+					}
+				}
+				RaptorIntermodalAccessEgress.RIntermodalAccessEgress accessEgress = this.intermodalAE.calcIntermodalAccessEgress(routeParts, parameters, person);
+				InitialStop iStop = new InitialStop(stop, accessEgress.disutility, accessEgress.travelTime, accessEgress.routeParts);
+				initialStops.add(iStop);
+			}
+		}
 	}
 
 	private static class ChangedLinkFacility implements Facility, Identifiable<TransitStopFacility> {

@@ -48,6 +48,7 @@ public class SwissRailRaptorData {
     final Map<TransitStopFacility, Integer> stopFacilityIndices;
     final Map<TransitStopFacility, int[]> routeStopsPerStopFacility;
     final QuadTree<TransitStopFacility> stopsQT;
+    final Map<String, Map<String, QuadTree<TransitStopFacility>>> stopFilterAttribute2Value2StopsQT;
 
     private SwissRailRaptorData(RaptorStaticConfig config, int countStops,
                                 RRoute[] routes, double[] departures, RRouteStop[] routeStops,
@@ -63,6 +64,7 @@ public class SwissRailRaptorData {
         this.stopFacilityIndices = stopFacilityIndices;
         this.routeStopsPerStopFacility = routeStopsPerStopFacility;
         this.stopsQT = stopsQT;
+        this.stopFilterAttribute2Value2StopsQT = new HashMap<String, Map<String, QuadTree<TransitStopFacility>>>();
     }
 
     public static SwissRailRaptorData create(TransitSchedule schedule, RaptorStaticConfig staticConfig, Network network) {
@@ -526,4 +528,25 @@ public class SwissRailRaptorData {
             this.transferDistance = transferDistance;
         }
     }
+    
+    /*
+     * synchronized in order to avoid that multiple quad trees for the very same stop filter attribute/value combination are prepared at the same time 
+     */
+	public synchronized void prepareStopFilterQuadTreeIfNotExistent(String stopFilterAttribute, String stopFilterValue) {
+		if (!stopFilterAttribute2Value2StopsQT.containsKey(stopFilterAttribute)) {
+			stopFilterAttribute2Value2StopsQT.put(stopFilterAttribute, new HashMap<>());
+		}
+	    Set<TransitStopFacility> stops = routeStopsPerStopFacility.keySet();
+        QuadTree<TransitStopFacility> stopsQTFiltered = new QuadTree<>(stopsQT.getMinEasting(), stopsQT.getMinNorthing(), stopsQT.getMaxEasting(), stopsQT.getMaxNorthing());
+        for (TransitStopFacility stopFacility : stops) {
+			Object attr = stopFacility.getAttributes().getAttribute(stopFilterAttribute);
+			String attrValue = attr == null ? null : attr.toString();
+			if (stopFilterValue.equals(attrValue)) {
+	            double x = stopFacility.getCoord().getX();
+	            double y = stopFacility.getCoord().getY();
+	            stopsQTFiltered.put(x, y, stopFacility);
+			}
+        }
+        stopFilterAttribute2Value2StopsQT.get(stopFilterAttribute).put(stopFilterValue, stopsQTFiltered);
+	}
 }

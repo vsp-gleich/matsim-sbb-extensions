@@ -17,17 +17,20 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.RoutingModule;
-import org.matsim.core.router.Transit;
 import org.matsim.core.utils.collections.QuadTree;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
-import org.matsim.utils.objectattributes.ObjectAttributes;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -141,128 +144,83 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 			}
 
 			if (personMatches) {
-				Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, paramset.getInitialSearchRadius());
-
-				//jr start
-				// This part removes stops from stopFacilities, if they do not fulfill the stopFilterAttribute
-				for (Iterator<TransitStopFacility> it = stopFacilities.iterator(); it.hasNext(); ) {
-					TransitStopFacility stop = it.next() ;
-					boolean filterMatches = true;
-					if (stopFilterAttribute != null) {
-						Object attr = stop.getAttributes().getAttribute(stopFilterAttribute);
-						String attrValue = attr == null ? null : attr.toString();
-						filterMatches = stopFilterValue.equals(attrValue);
-					}
-					if(!filterMatches) it.remove();
+				QuadTree<TransitStopFacility> filteredStopsQT;
+				if (stopFilterAttribute != null) {
+					data.prepareStopFilterQuadTreeIfNotExistent(stopFilterAttribute, stopFilterValue);
+					filteredStopsQT = data.stopFilterAttribute2Value2StopsQT.get(stopFilterAttribute).get(stopFilterValue);
+				} else {
+					filteredStopsQT = data.stopsQT;
 				}
-				//jr end
-
+				Collection<TransitStopFacility> stopFacilities = filteredStopsQT.getDisk(x, y, paramset.getInitialSearchRadius());
 				if (stopFacilities.size() < 2) {
-					// jr start
-					// The section takes all the stops within the general radius, and finds the stop that is closest to
-					// agents, while also fulfilling the StopFilterAttribute. If no fitting stops can be found, (i.e.
-					// nearestStop = null ), then the continue command is invoked, and the next intermodal access/egress
-					// mode is handled.
-					Collection<TransitStopFacility> allStops = data.stopsQT.getDisk(x, y, paramset.getRadius());
-					TransitStopFacility stopSave = null;
-					double distSave = Double.POSITIVE_INFINITY ;
-					double dist ;
-
-					for (TransitStopFacility stop : allStops ) {
-						boolean filterMatches = true;
-						if (stopFilterAttribute != null) {
-							Object attr = stop.getAttributes().getAttribute(stopFilterAttribute);
-							String attrValue = attr == null ? null : attr.toString();
-							filterMatches = stopFilterValue.equals(attrValue);
-						}
-						dist = CoordUtils.calcEuclideanDistance(facility.getCoord(), stop.getCoord());
-
-						if (filterMatches && (dist < distSave)) {
-							stopSave = stop;
-							distSave = dist;
-						}
-					}
-					TransitStopFacility  nearestStop ;
-					nearestStop = stopSave ;
-
-					if (nearestStop == null)
-						continue;
-					// jr end
+					TransitStopFacility nearestStop = filteredStopsQT.getClosest(x, y);
 					double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
-					double newSearchRadius = Math.min( nearestDistance + paramset.getSearchExtensionRadius(), paramset.getRadius() );
-					stopFacilities = data.stopsQT.getDisk(x, y, newSearchRadius);
+					double newSearchRadius = Math.min(nearestDistance + paramset.getSearchExtensionRadius(), paramset.getRadius());
+					stopFacilities = filteredStopsQT.getDisk(x, y, newSearchRadius);
 				}
 				
 				for (TransitStopFacility stop : stopFacilities) {
-					boolean filterMatches = true;
-					if (stopFilterAttribute != null) {
-						Object attr = stop.getAttributes().getAttribute(stopFilterAttribute);
-						String attrValue = attr == null ? null : attr.toString();
-						filterMatches = stopFilterValue.equals(attrValue);
+					Facility stopFacility = stop;
+					if (linkIdAttribute != null) {
+						Object attr = stop.getAttributes().getAttribute(linkIdAttribute);
+						if (attr != null) {
+							stopFacility = new ChangedLinkFacility(stop, Id.create(attr.toString(), Link.class));
+						}
 					}
-					if (filterMatches) {
-						Facility stopFacility = stop;
-						if (linkIdAttribute != null) {
-							Object attr = stop.getAttributes().getAttribute(linkIdAttribute);
-							if (attr != null) {
-								stopFacility = new ChangedLinkFacility(stop, Id.create(attr.toString(), Link.class));
+
+					List<? extends PlanElement> routeParts;
+					if (direction == Direction.ACCESS) {
+						RoutingModule module = this.routingModules.get(mode);
+						routeParts = module.calcRoute(facility, stopFacility, departureTime, person);
+					} else { // it's Egress
+						// We don't know the departure time for the egress trip, so just use the original departureTime,
+						// although it is wrong and might result in a wrong traveltime and thus wrong route.
+						RoutingModule module = this.routingModules.get(mode);
+						routeParts = module.calcRoute(stopFacility, facility, departureTime, person);
+						// clear the (wrong) departureTime so users don't get confused
+						for (PlanElement pe : routeParts) {
+							if (pe instanceof Leg) {
+								((Leg) pe).setDepartureTime(Time.getUndefinedTime());
 							}
 						}
-
-						List<? extends PlanElement> routeParts;
+					}
+					if (overrideMode != null) {
+						for (PlanElement pe : routeParts) {
+							if (pe instanceof Leg) {
+								((Leg) pe).setMode(overrideMode);
+							}
+						}
+					}
+					if (stopFacility != stop) {
 						if (direction == Direction.ACCESS) {
-							RoutingModule module = this.routingModules.get(mode);
-							routeParts = module.calcRoute(facility, stopFacility, departureTime, person);
-						} else { // it's Egress
-							// We don't know the departure time for the egress trip, so just use the original departureTime,
-							// although it is wrong and might result in a wrong traveltime and thus wrong route.
-							RoutingModule module = this.routingModules.get(mode);
-							routeParts = module.calcRoute(stopFacility, facility, departureTime, person);
-							// clear the (wrong) departureTime so users don't get confused
-							for (PlanElement pe : routeParts) {
-								if (pe instanceof Leg) {
-									((Leg) pe).setDepartureTime(Time.getUndefinedTime());
-								}
-							}
-						}
-						if (overrideMode != null) {
-							for (PlanElement pe : routeParts) {
-								if (pe instanceof Leg) {
-									((Leg) pe).setMode(overrideMode);
-								}
-							}
-						}
-						if (stopFacility != stop) {
-							if (direction == Direction.ACCESS) {
-								Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
-								Route transferRoute = RouteUtils.createGenericRouteImpl(stopFacility.getLinkId(), stop.getLinkId());
-								transferRoute.setTravelTime(0);
-								transferRoute.setDistance(0);
-								transferLeg.setRoute(transferRoute);
-								transferLeg.setTravelTime(0);
+							Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
+							Route transferRoute = RouteUtils.createGenericRouteImpl(stopFacility.getLinkId(), stop.getLinkId());
+							transferRoute.setTravelTime(0);
+							transferRoute.setDistance(0);
+							transferLeg.setRoute(transferRoute);
+							transferLeg.setTravelTime(0);
 
-								List<PlanElement> tmp = new ArrayList<>(routeParts.size() + 1);
-								tmp.addAll(routeParts);
-								tmp.add(transferLeg);
-								routeParts = tmp;
-							} else {
-								Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
-								Route transferRoute = RouteUtils.createGenericRouteImpl(stop.getLinkId(), stopFacility.getLinkId());
-								transferRoute.setTravelTime(0);
-								transferRoute.setDistance(0);
-								transferLeg.setRoute(transferRoute);
-								transferLeg.setTravelTime(0);
+							List<PlanElement> tmp = new ArrayList<>(routeParts.size() + 1);
+							tmp.addAll(routeParts);
+							tmp.add(transferLeg);
+							routeParts = tmp;
+						} else {
+							Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
+							Route transferRoute = RouteUtils.createGenericRouteImpl(stop.getLinkId(), stopFacility.getLinkId());
+							transferRoute.setTravelTime(0);
+							transferRoute.setDistance(0);
+							transferLeg.setRoute(transferRoute);
+							transferLeg.setTravelTime(0);
 
-								List<PlanElement> tmp = new ArrayList<>(routeParts.size() + 1);
-								tmp.add(transferLeg);
-								tmp.addAll(routeParts);
-								routeParts = tmp;
-							}
+							List<PlanElement> tmp = new ArrayList<>(routeParts.size() + 1);
+							tmp.add(transferLeg);
+							tmp.addAll(routeParts);
+							routeParts = tmp;
 						}
-						RaptorIntermodalAccessEgress.RIntermodalAccessEgress accessEgress = this.intermodalAE.calcIntermodalAccessEgress(routeParts, parameters, person);
-						InitialStop iStop = new InitialStop(stop, accessEgress.disutility, accessEgress.travelTime, accessEgress.routeParts);
-						initialStops.add(iStop);
 					}
+					RaptorIntermodalAccessEgress.RIntermodalAccessEgress accessEgress = this.intermodalAE.calcIntermodalAccessEgress(routeParts, parameters, person);
+					InitialStop iStop = new InitialStop(stop, accessEgress.disutility, accessEgress.travelTime, accessEgress.routeParts);
+					initialStops.add(iStop);
 				}
 			}
 		}
