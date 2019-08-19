@@ -21,6 +21,7 @@ import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.routes.RouteUtils;
 import org.matsim.core.router.RoutingModule;
+import org.matsim.core.utils.collections.QuadTree;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.Facility;
@@ -134,21 +135,22 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 			}
 
 			if (personMatches) {
-				Collection<TransitStopFacility> stopFacilities = data.stopsQT.getDisk(x, y, paramset.getInitialSearchRadius());
-				if (stopFacilities.size() < 2) {
-					TransitStopFacility  nearestStop = data.stopsQT.getClosest(x, y);
-					double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
-					double newSearchRadius = Math.min( nearestDistance + paramset.getSearchExtensionRadius(), paramset.getRadius() );
-					stopFacilities = data.stopsQT.getDisk(x, y, newSearchRadius);
+				QuadTree<TransitStopFacility> filteredStopsQT;
+				if (stopFilterAttribute != null) {
+					data.prepareStopFilterQuadTreeIfNotExistent(stopFilterAttribute, stopFilterValue);
+					filteredStopsQT = data.stopFilterAttribute2Value2StopsQT.get(stopFilterAttribute).get(stopFilterValue);
+				} else {
+					filteredStopsQT = data.stopsQT;
 				}
+				Collection<TransitStopFacility> stopFacilities = filteredStopsQT.getDisk(x, y, paramset.getInitialSearchRadius());
+				if (stopFacilities.size() < 2) {
+					TransitStopFacility nearestStop = filteredStopsQT.getClosest(x, y);
+					double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
+					double newSearchRadius = Math.min(nearestDistance + paramset.getSearchExtensionRadius(), paramset.getRadius());
+					stopFacilities = filteredStopsQT.getDisk(x, y, newSearchRadius);
+				}
+
 				for (TransitStopFacility stop : stopFacilities) {
-					boolean filterMatches = true;
-					if (stopFilterAttribute != null) {
-						Object attr = stop.getAttributes().getAttribute(stopFilterAttribute);
-						String attrValue = attr == null ? null : attr.toString();
-						filterMatches = stopFilterValue.equals(attrValue);
-					}
-					if (filterMatches) {
 						Facility stopFacility = stop;
 						if (linkIdAttribute != null) {
 							Object attr = stop.getAttributes().getAttribute(linkIdAttribute);
@@ -210,7 +212,6 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 						RaptorIntermodalAccessEgress.RIntermodalAccessEgress accessEgress = this.intermodalAE.calcIntermodalAccessEgress(routeParts, parameters, person);
 						InitialStop iStop = new InitialStop(stop, accessEgress.disutility, accessEgress.travelTime, accessEgress.routeParts);
 						initialStops.add(iStop);
-					}
 				}
 			}
 
