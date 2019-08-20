@@ -177,12 +177,20 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 						// although it is wrong and might result in a wrong traveltime and thus wrong route.
 						RoutingModule module = this.routingModules.get(mode);
 						routeParts = module.calcRoute(stopFacility, facility, departureTime, person);
+						if (routeParts == null) {
+							// the router for the access/egress mode could not find a route, skip that access/egress mode
+							continue;
+						}
 						// clear the (wrong) departureTime so users don't get confused
 						for (PlanElement pe : routeParts) {
 							if (pe instanceof Leg) {
 								((Leg) pe).setDepartureTime(Time.getUndefinedTime());
 							}
 						}
+					}
+					if (routeParts == null) {
+						// the router for the access/egress mode could not find a route, skip that access/egress mode
+						continue;
 					}
 					if (overrideMode != null) {
 						for (PlanElement pe : routeParts) {
