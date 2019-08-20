@@ -5,6 +5,8 @@
 package ch.sbb.matsim.routing.pt.raptor;
 
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
+import ch.sbb.matsim.routing.pt.raptor.RaptorRoute.RoutePart;
+
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
@@ -73,13 +75,13 @@ public class SwissRailRaptor implements TransitRouter {
         RaptorRoute foundRoute = this.raptor.calcLeastCostRoute(departureTime, fromFacility, toFacility, accessStops, egressStops, parameters);
         RaptorRoute directWalk = createDirectWalk(fromFacility, toFacility, departureTime, person, parameters);
 
-        if (foundRoute == null || foundRoute.parts.size() == 0 /* || directWalk.getTotalCosts() < foundRoute.getTotalCosts() */) {
+        if (foundRoute == null || hasNoPtLeg(foundRoute.parts) /* || directWalk.getTotalCosts() < foundRoute.getTotalCosts() */) {
 //		  log.warn( "foundRouteCost=" + foundRoute.getTotalCosts() ) ;
 //		  log.warn( "directWalkCost=" + directWalk.getTotalCosts() ) ;
         	if (person == null) {
-            	log.warn("No route found for person null: trip from x=" + fromFacility.getCoord().getX() + ",y=" + fromFacility.getCoord().getY() + " departure at " + departureTime + " to x=" + toFacility.getCoord().getX() + ",y=" + toFacility.getCoord().getY());
+            	log.debug("No route found for person null: trip from x=" + fromFacility.getCoord().getX() + ",y=" + fromFacility.getCoord().getY() + " departure at " + departureTime + " to x=" + toFacility.getCoord().getX() + ",y=" + toFacility.getCoord().getY());
         	} else {
-            	log.warn("No route found for person " + person.getId() + ": trip from x=" + fromFacility.getCoord().getX() + ",y=" + fromFacility.getCoord().getY() + " departure at " + departureTime + " to x=" + toFacility.getCoord().getX() + ",y=" + toFacility.getCoord().getY());
+            	log.debug("No route found for person " + person.getId() + ": trip from x=" + fromFacility.getCoord().getX() + ",y=" + fromFacility.getCoord().getY() + " departure at " + departureTime + " to x=" + toFacility.getCoord().getX() + ",y=" + toFacility.getCoord().getY());
         	}
             foundRoute = directWalk;
         }
@@ -88,7 +90,17 @@ public class SwissRailRaptor implements TransitRouter {
         return legs;
     }
 
-    private List<Leg> performRangeQuery(Facility fromFacility, Facility toFacility, double desiredDepartureTime, Person person, RaptorParameters parameters) {
+    private boolean hasNoPtLeg(List<RoutePart> parts) {
+		for (RoutePart part: parts) {
+			// if the route part has a TransitLine, it must be a real pt leg
+			if (part.line != null) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private List<Leg> performRangeQuery(Facility fromFacility, Facility toFacility, double desiredDepartureTime, Person person, RaptorParameters parameters) {
         SwissRailRaptorConfigGroup srrConfig = parameters.getConfig();
 
 //        Object attr = this.personAttributes.getAttribute(person.getId().toString(), this.subpopulationAttribute);

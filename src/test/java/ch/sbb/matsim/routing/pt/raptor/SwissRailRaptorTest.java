@@ -181,19 +181,14 @@ public class SwissRailRaptorTest {
         Coord fromCoord = new Coord(3800, 5100);
         Coord toCoord = new Coord(4100, 5050);
         List<Leg> legs = router.calcRoute(new FakeFacility(fromCoord), new FakeFacility(toCoord), 5.0*3600, null);
-        // without direct walks it should now be: non_network_walk -> stop -> non_network_walk
-        assertEquals(2, legs.size());
-        assertEquals(TransportMode.non_network_walk, legs.get(0).getMode());
-        assertEquals(TransportMode.non_network_walk, legs.get(1).getMode());
+        assertEquals(1, legs.size());
+        assertEquals(TransportMode.transit_walk, legs.get(0).getMode());
         double actualTravelTime = 0.0;
         for (Leg leg : legs) {
             actualTravelTime += leg.getTravelTime();
         }
-        // closest pt stop is stop 0
-        Coord ptStop0 = f.schedule.getFacilities().get(Id.create("0", TransitStopFacility.class)).getCoord();
-        double expectedTravelTime = CoordUtils.calcEuclideanDistance(fromCoord, ptStop0) / raptorParams.getBeelineWalkSpeed() +
-        CoordUtils.calcEuclideanDistance(ptStop0, toCoord) / raptorParams.getBeelineWalkSpeed();
-        assertEquals(expectedTravelTime, actualTravelTime, 2.0); // result is rounded up for each leg, so allow 1s per leg
+        double expectedTravelTime = CoordUtils.calcEuclideanDistance(fromCoord, toCoord) / raptorParams.getBeelineWalkSpeed();
+        assertEquals(expectedTravelTime, actualTravelTime, MatsimTestCase.EPSILON);
     }
 
     // now the pt router should always try to return a pt route no matter whether a direct walk would be faster
