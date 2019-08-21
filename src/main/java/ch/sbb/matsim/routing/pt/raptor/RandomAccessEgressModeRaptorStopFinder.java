@@ -190,7 +190,7 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 				}
 				if (stopFacility != stop) {
 					if (direction == Direction.ACCESS) {
-						Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
+						Leg transferLeg = PopulationUtils.createLeg(TransportMode.non_network_walk);
 						Route transferRoute = RouteUtils.createGenericRouteImpl(stopFacility.getLinkId(), stop.getLinkId());
 						transferRoute.setTravelTime(0);
 						transferRoute.setDistance(0);
@@ -202,7 +202,7 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 						tmp.add(transferLeg);
 						routeParts = tmp;
 					} else {
-						Leg transferLeg = PopulationUtils.createLeg(TransportMode.transit_walk);
+						Leg transferLeg = PopulationUtils.createLeg(TransportMode.non_network_walk);
 						Route transferRoute = RouteUtils.createGenericRouteImpl(stop.getLinkId(), stopFacility.getLinkId());
 						transferRoute.setTravelTime(0);
 						transferRoute.setDistance(0);
