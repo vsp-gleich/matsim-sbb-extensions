@@ -84,8 +84,8 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 			List<InitialStop> initialStops = stops.stream().map(stop -> {
 				double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
 				double travelTime = Math.ceil(beelineDistance / parameters.getBeelineWalkSpeed());
-				double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.access_walk);
-				return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.access_walk);
+				double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.non_network_walk);
+				return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.non_network_walk);
 			}).collect(Collectors.toList());
 			return initialStops;
 		}
@@ -101,8 +101,8 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 			List<InitialStop> initialStops = stops.stream().map(stop -> {
 				double beelineDistance = CoordUtils.calcEuclideanDistance(stop.getCoord(), facility.getCoord());
 				double travelTime = Math.ceil(beelineDistance / parameters.getBeelineWalkSpeed());
-				double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.egress_walk);
-				return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.egress_walk);
+				double disutility = travelTime * -parameters.getMarginalUtilityOfTravelTime_utl_s(TransportMode.non_network_walk);
+				return new InitialStop(stop, disutility, travelTime, beelineDistance * distanceFactor, TransportMode.non_network_walk);
 			}).collect(Collectors.toList());
 			return initialStops;
 		}
@@ -126,8 +126,7 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 				// uebergebuegelt werden.  Ist diese Abfrage denn noetig?  kai, jun'19
 				// Habe gerade mal "walk" an den entscheidenden Stellen durch "bike" ersetzt; damit funktioniert es dann wie vorgesehen.  Das
 				// impliziert erstmal, dass "walk" hier problematisch ist.  Ob die Weglassung woanders Probleme macht, weiss ich nicht.  kai, jun'19
-				overrideMode = direction == Direction.ACCESS ? TransportMode.access_walk : TransportMode.egress_walk; 
-				// verweist auf eine matsim version, wo TransportMode.access_walk noch "access_walk" und nicht "non_network_walk" ist. gl jul'19
+				overrideMode = TransportMode.non_network_walk; 
 			}
 			String linkIdAttribute = paramset.getLinkIdAttribute();
 			String personFilterAttribute = paramset.getPersonFilterAttribute();

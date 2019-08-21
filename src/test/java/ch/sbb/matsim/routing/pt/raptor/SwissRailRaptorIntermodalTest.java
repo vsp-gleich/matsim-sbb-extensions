@@ -53,13 +53,13 @@ public class SwissRailRaptorIntermodalTest {
     public void testIntermodalTrip() {
         IntermodalFixture f = new IntermodalFixture();
 
-        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("access_walk");
+        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
         accessWalk.setMarginalUtilityOfTraveling(0.0);
         f.config.planCalcScore().addModeParams(accessWalk);
         PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
         transitWalk.setMarginalUtilityOfTraveling(0.0);
         f.config.planCalcScore().addModeParams(transitWalk);
-        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("egress_walk");
+        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
         egressWalk.setMarginalUtilityOfTraveling(0.0);
         f.config.planCalcScore().addModeParams(egressWalk);
 
@@ -152,13 +152,13 @@ public class SwissRailRaptorIntermodalTest {
         bikeAccess.setStopFilterValue("true");
         f.srrConfig.addIntermodalAccessEgress(bikeAccess);
 
-        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("access_walk");
+        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
         accessWalk.setMarginalUtilityOfTraveling(0.0);
         f.config.planCalcScore().addModeParams(accessWalk);
         PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
         transitWalk.setMarginalUtilityOfTraveling(0.0);
         f.config.planCalcScore().addModeParams(transitWalk);
-        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("egress_walk");
+        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
         egressWalk.setMarginalUtilityOfTraveling(0.0);
         f.config.planCalcScore().addModeParams(egressWalk);
 
@@ -212,13 +212,13 @@ public class SwissRailRaptorIntermodalTest {
     public void testIntermodalTrip_walkOnlyNoSubpop() {
         IntermodalFixture f = new IntermodalFixture();
 
-        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("access_walk");
+        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
         accessWalk.setMarginalUtilityOfTraveling(-8.0);
         f.config.planCalcScore().addModeParams(accessWalk);
         PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
         transitWalk.setMarginalUtilityOfTraveling(0.0);
         f.config.planCalcScore().addModeParams(transitWalk);
-        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("egress_walk");
+        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
         egressWalk.setMarginalUtilityOfTraveling(-8.0);
         f.config.planCalcScore().addModeParams(egressWalk);
 
@@ -250,7 +250,7 @@ public class SwissRailRaptorIntermodalTest {
 
         Assert.assertEquals("wrong number of legs.", 3, legs.size());
         Leg leg = legs.get(0);
-        Assert.assertEquals(TransportMode.access_walk, leg.getMode());
+        Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
         Assert.assertEquals(Id.create("from", Link.class), leg.getRoute().getStartLinkId());
         Assert.assertEquals(Id.create("pt_2", Link.class), leg.getRoute().getEndLinkId());
         leg = legs.get(1);
@@ -258,7 +258,7 @@ public class SwissRailRaptorIntermodalTest {
         Assert.assertEquals(Id.create("pt_2", Link.class), leg.getRoute().getStartLinkId());
         Assert.assertEquals(Id.create("pt_5", Link.class), leg.getRoute().getEndLinkId());
         leg = legs.get(2);
-        Assert.assertEquals(TransportMode.egress_walk, leg.getMode());
+        Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
         Assert.assertEquals(Id.create("pt_5", Link.class), leg.getRoute().getStartLinkId());
         Assert.assertEquals(Id.create("to", Link.class), leg.getRoute().getEndLinkId());
     }
@@ -274,13 +274,13 @@ public class SwissRailRaptorIntermodalTest {
     public void testIntermodalTrip_withoutPt() {
         IntermodalFixture f = new IntermodalFixture();
 
-        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("access_walk");
+        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
         accessWalk.setMarginalUtilityOfTraveling(0.0);
         f.config.planCalcScore().addModeParams(accessWalk);
         PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
         transitWalk.setMarginalUtilityOfTraveling(0.0);
         f.config.planCalcScore().addModeParams(transitWalk);
-        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("egress_walk");
+        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
         egressWalk.setMarginalUtilityOfTraveling(0.0);
         f.config.planCalcScore().addModeParams(egressWalk);
 
@@ -334,13 +334,13 @@ public class SwissRailRaptorIntermodalTest {
         f.config.planCalcScore().getModes().get(TransportMode.walk).setMarginalUtilityOfTraveling(-7);
         f.config.planCalcScore().getModes().get(TransportMode.bike).setMarginalUtilityOfTraveling(-8);
 
-        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("access_walk");
+        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
         accessWalk.setMarginalUtilityOfTraveling(0);
         f.config.planCalcScore().addModeParams(accessWalk);
         PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
         transitWalk.setMarginalUtilityOfTraveling(0);
         f.config.planCalcScore().addModeParams(transitWalk);
-        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("egress_walk");
+        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
         egressWalk.setMarginalUtilityOfTraveling(0);
         f.config.planCalcScore().addModeParams(egressWalk);
 
@@ -405,7 +405,7 @@ public class SwissRailRaptorIntermodalTest {
 
             Assert.assertEquals("wrong number of legs.", 3, legs.size());
             Leg leg = legs.get(0);
-            Assert.assertEquals(TransportMode.access_walk, leg.getMode());
+            Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
             Assert.assertEquals(Id.create("from", Link.class), leg.getRoute().getStartLinkId());
             Assert.assertEquals(Id.create("pt_3", Link.class), leg.getRoute().getEndLinkId());
             leg = legs.get(1);
@@ -413,7 +413,7 @@ public class SwissRailRaptorIntermodalTest {
             Assert.assertEquals(Id.create("pt_3", Link.class), leg.getRoute().getStartLinkId());
             Assert.assertEquals(Id.create("pt_5", Link.class), leg.getRoute().getEndLinkId());
             leg = legs.get(2);
-            Assert.assertEquals(TransportMode.egress_walk, leg.getMode());
+            Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
             Assert.assertEquals(Id.create("pt_5", Link.class), leg.getRoute().getStartLinkId());
             Assert.assertEquals(Id.create("to", Link.class), leg.getRoute().getEndLinkId());
         }
@@ -436,13 +436,13 @@ public class SwissRailRaptorIntermodalTest {
         f.config.planCalcScore().getModes().get(TransportMode.walk).setMarginalUtilityOfTraveling(-7);
         f.config.planCalcScore().getModes().get(TransportMode.bike).setMarginalUtilityOfTraveling(-8);
 
-        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("access_walk");
+        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
         accessWalk.setMarginalUtilityOfTraveling(0);
         f.config.planCalcScore().addModeParams(accessWalk);
         PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
         transitWalk.setMarginalUtilityOfTraveling(0);
         f.config.planCalcScore().addModeParams(transitWalk);
-        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("egress_walk");
+        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
         egressWalk.setMarginalUtilityOfTraveling(0);
         f.config.planCalcScore().addModeParams(egressWalk);
 
@@ -482,7 +482,7 @@ public class SwissRailRaptorIntermodalTest {
                   // and whether the legs start and end on the correct links
                     Assert.assertEquals("wrong number of legs.", 3, legs.size());
                     Leg leg = legs.get(0);
-                    Assert.assertTrue((leg.getMode().equals(TransportMode.bike)) || (leg.getMode().equals(TransportMode.access_walk)));
+                    Assert.assertTrue((leg.getMode().equals(TransportMode.bike)) || (leg.getMode().equals(TransportMode.non_network_walk)));
                     Assert.assertEquals(Id.create("from", Link.class), leg.getRoute().getStartLinkId());
                     Assert.assertEquals(Id.create("pt_3", Link.class), leg.getRoute().getEndLinkId());
                     leg = legs.get(1);
@@ -490,7 +490,7 @@ public class SwissRailRaptorIntermodalTest {
                     Assert.assertEquals(Id.create("pt_3", Link.class), leg.getRoute().getStartLinkId());
                     Assert.assertEquals(Id.create("pt_5", Link.class), leg.getRoute().getEndLinkId());
                     leg = legs.get(2);
-                    Assert.assertTrue((leg.getMode().equals(TransportMode.bike)) || (leg.getMode().equals(TransportMode.egress_walk)));
+                    Assert.assertTrue((leg.getMode().equals(TransportMode.bike)) || (leg.getMode().equals(TransportMode.non_network_walk)));
                     Assert.assertEquals(Id.create("pt_5", Link.class), leg.getRoute().getStartLinkId());
                     Assert.assertEquals(Id.create("to", Link.class), leg.getRoute().getEndLinkId());
                 }
@@ -498,11 +498,11 @@ public class SwissRailRaptorIntermodalTest {
                 { // Test 2: Counts all different access/egress mode combinations. The assertions occur later.
 
 
-                    if ((legs.get(0).getMode().equals(TransportMode.access_walk)) && (legs.get(2).getMode().equals(TransportMode.egress_walk)))
+                    if ((legs.get(0).getMode().equals(TransportMode.non_network_walk)) && (legs.get(2).getMode().equals(TransportMode.non_network_walk)))
                         numWalkWalk ++ ;
-                    else if ((legs.get(0).getMode().equals(TransportMode.access_walk)) && (legs.get(2).getMode().equals(TransportMode.bike)))
+                    else if ((legs.get(0).getMode().equals(TransportMode.non_network_walk)) && (legs.get(2).getMode().equals(TransportMode.bike)))
                         numWalkBike ++ ;
-                    else if ((legs.get(0).getMode().equals(TransportMode.bike)) && (legs.get(2).getMode().equals(TransportMode.egress_walk)))
+                    else if ((legs.get(0).getMode().equals(TransportMode.bike)) && (legs.get(2).getMode().equals(TransportMode.non_network_walk)))
                         numBikeWalk ++ ;
                     else if ((legs.get(0).getMode().equals(TransportMode.bike)) && (legs.get(2).getMode().equals(TransportMode.bike)))
                         numBikeBike ++ ;
@@ -542,13 +542,13 @@ public class SwissRailRaptorIntermodalTest {
         f.config.planCalcScore().getModes().get(TransportMode.walk).setMarginalUtilityOfTraveling(-7);
         f.config.planCalcScore().getModes().get(TransportMode.bike).setMarginalUtilityOfTraveling(-8);
 
-        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("access_walk");
+        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
         accessWalk.setMarginalUtilityOfTraveling(0);
         f.config.planCalcScore().addModeParams(accessWalk);
         PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
         transitWalk.setMarginalUtilityOfTraveling(0);
         f.config.planCalcScore().addModeParams(transitWalk);
-        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("egress_walk");
+        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
         egressWalk.setMarginalUtilityOfTraveling(0);
         f.config.planCalcScore().addModeParams(egressWalk);
 
@@ -620,7 +620,7 @@ public class SwissRailRaptorIntermodalTest {
             Assert.assertEquals(Id.create("pt_3", Link.class), leg.getRoute().getStartLinkId());
             Assert.assertEquals(Id.create("pt_5", Link.class), leg.getRoute().getEndLinkId());
             leg = legs.get(2);
-            Assert.assertEquals(TransportMode.egress_walk, leg.getMode()); // TODO: should be TransportMode.walk?
+            Assert.assertEquals(TransportMode.non_network_walk, leg.getMode()); // TODO: should be TransportMode.walk?
             Assert.assertEquals(Id.create("pt_5", Link.class), leg.getRoute().getStartLinkId());
             Assert.assertEquals(Id.create("to", Link.class), leg.getRoute().getEndLinkId());
         }
@@ -640,7 +640,7 @@ public class SwissRailRaptorIntermodalTest {
 
             Assert.assertEquals("wrong number of legs.", 3, legs.size());
             Leg leg = legs.get(0);
-            Assert.assertEquals(TransportMode.access_walk, leg.getMode()); // TODO: should be TransportMode.walk?
+            Assert.assertEquals(TransportMode.non_network_walk, leg.getMode()); // TODO: should be TransportMode.walk?
             Assert.assertEquals(Id.create("from", Link.class), leg.getRoute().getStartLinkId());
             Assert.assertEquals(Id.create("pt_3", Link.class), leg.getRoute().getEndLinkId());
             leg = legs.get(1);

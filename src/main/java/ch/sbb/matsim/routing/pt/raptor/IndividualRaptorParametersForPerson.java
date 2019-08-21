@@ -57,7 +57,7 @@ public class IndividualRaptorParametersForPerson implements RaptorParametersForP
 
 		ModeUtilityParameters walkParams = scoringParameters.modeParams.get(TransportMode.walk);
 
-		for (String fallbackMode : Arrays.asList(TransportMode.access_walk, TransportMode.egress_walk,
+		for (String fallbackMode : Arrays.asList(TransportMode.non_network_walk,
 				TransportMode.transit_walk)) {
 			ModeUtilityParameters modeParams = scoringParameters.modeParams.get(fallbackMode);
 

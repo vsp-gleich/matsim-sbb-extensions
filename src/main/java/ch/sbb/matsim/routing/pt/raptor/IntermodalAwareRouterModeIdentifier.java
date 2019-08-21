@@ -27,11 +27,11 @@ public class IntermodalAwareRouterModeIdentifier implements MainModeIdentifier {
     }
 
     /** Intermodal trips can have a number of different legs and interaction activities, e.g.:
-     * access_walk | bike-interaction | bike | pt-interaction | transit-walk | pt-interaction | train | pt-interaction | egress_walk
+     * non_network_walk | bike-interaction | bike | pt-interaction | transit-walk | pt-interaction | train | pt-interaction | non_network_walk
      * Thus, this main mode identifier uses the following heuristic to decide to which router mode a trip belongs:
      * - if there is a leg with a pt mode (based on config.transit().getTransitModes(), it returns that pt mode.
      * - if there is only a leg with mode transit_walk, one of the configured transit modes is returned.
-     * - otherwise, the first mode not being an access_walk, egress_walk or transit_walk.
+     * - otherwise, the first mode not being an non_network_walk, non_network_walk or transit_walk.
      */
     @Override
     public String identifyMainMode(List<? extends PlanElement> tripElements) {
@@ -46,8 +46,7 @@ public class IntermodalAwareRouterModeIdentifier implements MainModeIdentifier {
                     identifiedMode = TransportMode.pt;
                 }
                 if (identifiedMode == null
-                        && !TransportMode.access_walk.equals(mode)
-                        && !TransportMode.egress_walk.equals(mode)
+                        && !TransportMode.non_network_walk.equals(mode)
                         && !TransportMode.transit_walk.equals(mode)) {
                     identifiedMode = mode;
                 }

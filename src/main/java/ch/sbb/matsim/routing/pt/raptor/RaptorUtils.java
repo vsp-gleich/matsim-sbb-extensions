@@ -79,7 +79,7 @@ public final class RaptorUtils {
             raptorParams.setMarginalUtilityOfTravelTime_utl_s(mode, marginalUtility_utl_s);
         }
         
-		for (String fallbackMode : Arrays.asList(TransportMode.access_walk, TransportMode.egress_walk,
+		for (String fallbackMode : Arrays.asList(TransportMode.non_network_walk,
 				TransportMode.transit_walk)) {
 			if (!pcsConfig.getModes().containsKey(fallbackMode)) {
 				PlanCalcScoreConfigGroup.ModeParams modeParams = pcsConfig.getModes().get(TransportMode.walk);

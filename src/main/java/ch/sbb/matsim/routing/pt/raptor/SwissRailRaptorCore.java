@@ -857,10 +857,10 @@ public class SwissRailRaptorCore {
                     }
                     String mode = TransportMode.transit_walk;
                     if (fromStop == null && toStop != null) {
-                        mode = TransportMode.access_walk;
+                        mode = TransportMode.non_network_walk;
                     }
                     if (fromStop != null && toStop == null) {
-                        mode = TransportMode.egress_walk;
+                        mode = TransportMode.non_network_walk;
                     }
                     raptorRoute.addNonPt(fromStop, toStop, time, travelTime, pe.distance, mode);
                 }
