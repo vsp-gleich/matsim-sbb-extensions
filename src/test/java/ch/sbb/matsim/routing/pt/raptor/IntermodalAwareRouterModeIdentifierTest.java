@@ -73,7 +73,7 @@ public class IntermodalAwareRouterModeIdentifierTest {
     }
     
     @Test
-    public void testPtWithIntermodalAccessEgress() {
+    public void testPtWithIntermodalAccess() {
         Config config = ConfigUtils.createConfig();
         IntermodalAwareRouterModeIdentifier identifier = new IntermodalAwareRouterModeIdentifier(config);
         List<PlanElement> tripElements = Arrays.asList(
@@ -89,6 +89,29 @@ public class IntermodalAwareRouterModeIdentifierTest {
                 PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
                 PopulationUtils.createLeg(TransportMode.pt),
                 PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
+                PopulationUtils.createLeg(TransportMode.non_network_walk)
+        );
+        String identifiedMode = identifier.identifyMainMode(tripElements);
+        Assert.assertEquals(TransportMode.pt, identifiedMode);
+    }
+    
+    @Test
+    public void testPtWithIntermodalEgress() {
+        Config config = ConfigUtils.createConfig();
+        IntermodalAwareRouterModeIdentifier identifier = new IntermodalAwareRouterModeIdentifier(config);
+        List<PlanElement> tripElements = Arrays.asList(
+                PopulationUtils.createLeg(TransportMode.non_network_walk),
+                PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
+                PopulationUtils.createLeg(TransportMode.pt),
+                PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
+                PopulationUtils.createLeg(TransportMode.transit_walk),
+                PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
+                PopulationUtils.createLeg(TransportMode.pt),
+                PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
+                PopulationUtils.createLeg(TransportMode.non_network_walk),
+                PopulationUtils.createActivityFromCoord("drt2_interaction", new Coord(0, 0)),
+                PopulationUtils.createLeg("drt2"),
+                PopulationUtils.createActivityFromCoord("drt2_interaction", new Coord(0, 0)),
                 PopulationUtils.createLeg(TransportMode.non_network_walk)
         );
         String identifiedMode = identifier.identifyMainMode(tripElements);
