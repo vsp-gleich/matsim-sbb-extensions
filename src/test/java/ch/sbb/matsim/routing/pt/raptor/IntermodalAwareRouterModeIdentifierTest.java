@@ -40,31 +40,56 @@ public class IntermodalAwareRouterModeIdentifierTest {
         Config config = ConfigUtils.createConfig();
         IntermodalAwareRouterModeIdentifier identifier = new IntermodalAwareRouterModeIdentifier(config);
         List<PlanElement> tripElements = Arrays.asList(
-                PopulationUtils.createLeg(TransportMode.access_walk),
+                PopulationUtils.createLeg(TransportMode.non_network_walk),
                 PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
                 PopulationUtils.createLeg(TransportMode.pt),
                 PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
-                PopulationUtils.createLeg(TransportMode.egress_walk)
+                PopulationUtils.createLeg(TransportMode.non_network_walk)
         );
         String identifiedMode = identifier.identifyMainMode(tripElements);
         Assert.assertEquals(TransportMode.pt, identifiedMode);
     }
 
+    // Found this old test and renamed it. I'm wondering why it has no intermodal Leg (e.g. a "bike" leg) and why there is no
+    // Stage activity between the pt and the non_network-walk leg
     @Test
-    public void testPtWithIntermodalAccessEgress() {
+    public void testPtWithIntermodalAccessEgressStageActivity() {
         Config config = ConfigUtils.createConfig();
         IntermodalAwareRouterModeIdentifier identifier = new IntermodalAwareRouterModeIdentifier(config);
         List<PlanElement> tripElements = Arrays.asList(
-                PopulationUtils.createLeg(TransportMode.access_walk),
+                PopulationUtils.createLeg(TransportMode.non_network_walk),
                 PopulationUtils.createActivityFromCoord("bike interaction", new Coord(0, 0)),
                 PopulationUtils.createLeg(TransportMode.pt),
-                PopulationUtils.createLeg(TransportMode.egress_walk),
+                PopulationUtils.createLeg(TransportMode.non_network_walk),
                 PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
                 PopulationUtils.createLeg(TransportMode.transit_walk),
                 PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
                 PopulationUtils.createLeg(TransportMode.pt),
                 PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
-                PopulationUtils.createLeg(TransportMode.egress_walk)
+                PopulationUtils.createLeg(TransportMode.non_network_walk)
+        );
+        String identifiedMode = identifier.identifyMainMode(tripElements);
+        Assert.assertEquals(TransportMode.pt, identifiedMode);
+    }
+    
+    @Test
+    public void testPtWithIntermodalAccessEgress() {
+        Config config = ConfigUtils.createConfig();
+        IntermodalAwareRouterModeIdentifier identifier = new IntermodalAwareRouterModeIdentifier(config);
+        List<PlanElement> tripElements = Arrays.asList(
+                PopulationUtils.createLeg(TransportMode.non_network_walk),
+                PopulationUtils.createActivityFromCoord("drt_interaction", new Coord(0, 0)),
+                PopulationUtils.createLeg(TransportMode.drt),
+                PopulationUtils.createActivityFromCoord("drt_interaction", new Coord(0, 0)),
+                PopulationUtils.createLeg(TransportMode.non_network_walk),
+                PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
+                PopulationUtils.createLeg(TransportMode.pt),
+                PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
+                PopulationUtils.createLeg(TransportMode.transit_walk),
+                PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
+                PopulationUtils.createLeg(TransportMode.pt),
+                PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
+                PopulationUtils.createLeg(TransportMode.non_network_walk)
         );
         String identifiedMode = identifier.identifyMainMode(tripElements);
         Assert.assertEquals(TransportMode.pt, identifiedMode);
@@ -76,11 +101,11 @@ public class IntermodalAwareRouterModeIdentifierTest {
         config.transit().setTransitModes(CollectionUtils.stringToSet("train,bus"));
         IntermodalAwareRouterModeIdentifier identifier = new IntermodalAwareRouterModeIdentifier(config);
         List<PlanElement> tripElements = Arrays.asList(
-                PopulationUtils.createLeg(TransportMode.access_walk),
+                PopulationUtils.createLeg(TransportMode.non_network_walk),
                 PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
                 PopulationUtils.createLeg("train"),
                 PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
-                PopulationUtils.createLeg(TransportMode.egress_walk)
+                PopulationUtils.createLeg(TransportMode.non_network_walk)
         );
         String identifiedMode = identifier.identifyMainMode(tripElements);
         Assert.assertEquals("train", identifiedMode);
@@ -113,11 +138,11 @@ public class IntermodalAwareRouterModeIdentifierTest {
         Config config = ConfigUtils.createConfig();
         IntermodalAwareRouterModeIdentifier identifier = new IntermodalAwareRouterModeIdentifier(config);
         List<PlanElement> tripElements = Arrays.asList(
-                PopulationUtils.createLeg(TransportMode.access_walk),
+                PopulationUtils.createLeg(TransportMode.non_network_walk),
                 PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
                 PopulationUtils.createLeg(TransportMode.bike),
                 PopulationUtils.createActivityFromCoord(PtConstants.TRANSIT_ACTIVITY_TYPE, new Coord(0, 0)),
-                PopulationUtils.createLeg(TransportMode.egress_walk)
+                PopulationUtils.createLeg(TransportMode.non_network_walk)
         );
         String identifiedMode = identifier.identifyMainMode(tripElements);
         Assert.assertEquals(TransportMode.bike, identifiedMode);
