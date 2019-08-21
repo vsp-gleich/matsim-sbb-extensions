@@ -53,25 +53,22 @@ public class SwissRailRaptorIntermodalTest {
     public void testIntermodalTrip() {
         IntermodalFixture f = new IntermodalFixture();
 
-        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
-        accessWalk.setMarginalUtilityOfTraveling(0.0);
-        f.config.planCalcScore().addModeParams(accessWalk);
+        PlanCalcScoreConfigGroup.ModeParams nonNetworkWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
+        nonNetworkWalk.setMarginalUtilityOfTraveling(0.0);
+        f.config.planCalcScore().addModeParams(nonNetworkWalk);
         PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
         transitWalk.setMarginalUtilityOfTraveling(0.0);
         f.config.planCalcScore().addModeParams(transitWalk);
-        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
-        egressWalk.setMarginalUtilityOfTraveling(0.0);
-        f.config.planCalcScore().addModeParams(egressWalk);
 
         Map<String, RoutingModule> routingModules = new HashMap<>();
-        routingModules.put(TransportMode.walk,
-            new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3));
+        routingModules.put(TransportMode.non_network_walk,
+            new TeleportationRoutingModule(TransportMode.non_network_walk, f.scenario, 1.1, 1.3));
         routingModules.put(TransportMode.bike,
             new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3, 1.4));
 
         f.srrConfig.setUseIntermodalAccessEgress(true);
         IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
-        walkAccess.setMode(TransportMode.walk);
+        walkAccess.setMode(TransportMode.non_network_walk);
         walkAccess.setRadius(1000);
         walkAccess.setInitialSearchRadius(1000);
         f.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -124,22 +121,22 @@ public class SwissRailRaptorIntermodalTest {
     public void testIntermodalTrip_TripRouterIntegration() {
         IntermodalFixture f = new IntermodalFixture();
 
-        RoutingModule walkRoutingModule = new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3);
+        RoutingModule walkRoutingModule = new TeleportationRoutingModule(TransportMode.non_network_walk, f.scenario, 1.1, 1.3);
         RoutingModule bikeRoutingModule = new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3, 1.4);
 
         Map<String, RoutingModule> routingModules = new HashMap<>();
-        routingModules.put(TransportMode.walk, walkRoutingModule);
+        routingModules.put(TransportMode.non_network_walk, walkRoutingModule);
         routingModules.put(TransportMode.bike, bikeRoutingModule);
 
         TripRouter.Builder tripRouterBuilder = new TripRouter.Builder(f.config)
-        		.setRoutingModule(TransportMode.walk, walkRoutingModule)
+        		.setRoutingModule(TransportMode.non_network_walk, walkRoutingModule)
         		.setRoutingModule(TransportMode.bike, bikeRoutingModule);
         
         TripRouter tripRouter = tripRouterBuilder.build();
 
         f.srrConfig.setUseIntermodalAccessEgress(true);
         IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
-        walkAccess.setMode(TransportMode.walk);
+        walkAccess.setMode(TransportMode.non_network_walk);
         walkAccess.setRadius(1000);
         walkAccess.setInitialSearchRadius(1000);
         f.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -152,15 +149,12 @@ public class SwissRailRaptorIntermodalTest {
         bikeAccess.setStopFilterValue("true");
         f.srrConfig.addIntermodalAccessEgress(bikeAccess);
 
-        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
-        accessWalk.setMarginalUtilityOfTraveling(0.0);
-        f.config.planCalcScore().addModeParams(accessWalk);
+        PlanCalcScoreConfigGroup.ModeParams nonNetworkWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
+        nonNetworkWalk.setMarginalUtilityOfTraveling(0.0);
+        f.config.planCalcScore().addModeParams(nonNetworkWalk);
         PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
         transitWalk.setMarginalUtilityOfTraveling(0.0);
         f.config.planCalcScore().addModeParams(transitWalk);
-        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
-        egressWalk.setMarginalUtilityOfTraveling(0.0);
-        f.config.planCalcScore().addModeParams(egressWalk);
 
         SwissRailRaptorData data = SwissRailRaptorData.create(f.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f.config), f.scenario.getNetwork());
         DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(null, new DefaultRaptorIntermodalAccessEgress(), routingModules);
@@ -212,25 +206,22 @@ public class SwissRailRaptorIntermodalTest {
     public void testIntermodalTrip_walkOnlyNoSubpop() {
         IntermodalFixture f = new IntermodalFixture();
 
-        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
-        accessWalk.setMarginalUtilityOfTraveling(-8.0);
-        f.config.planCalcScore().addModeParams(accessWalk);
+        PlanCalcScoreConfigGroup.ModeParams nonNetworkWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
+        nonNetworkWalk.setMarginalUtilityOfTraveling(-8.0);
+        f.config.planCalcScore().addModeParams(nonNetworkWalk);
         PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
         transitWalk.setMarginalUtilityOfTraveling(0.0);
         f.config.planCalcScore().addModeParams(transitWalk);
-        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
-        egressWalk.setMarginalUtilityOfTraveling(-8.0);
-        f.config.planCalcScore().addModeParams(egressWalk);
 
         Map<String, RoutingModule> routingModules = new HashMap<>();
-        routingModules.put(TransportMode.walk,
-                new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3));
+        routingModules.put(TransportMode.non_network_walk,
+                new TeleportationRoutingModule(TransportMode.non_network_walk, f.scenario, 1.1, 1.3));
         routingModules.put(TransportMode.bike,
                 new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3, 1.4));
 
         f.srrConfig.setUseIntermodalAccessEgress(true);
         IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
-        walkAccess.setMode(TransportMode.walk);
+        walkAccess.setMode(TransportMode.non_network_walk);
         walkAccess.setRadius(1000);
         walkAccess.setInitialSearchRadius(1000);
         f.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -274,19 +265,16 @@ public class SwissRailRaptorIntermodalTest {
     public void testIntermodalTrip_withoutPt() {
         IntermodalFixture f = new IntermodalFixture();
 
-        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
-        accessWalk.setMarginalUtilityOfTraveling(0.0);
-        f.config.planCalcScore().addModeParams(accessWalk);
+        PlanCalcScoreConfigGroup.ModeParams nonNetworkWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
+        nonNetworkWalk.setMarginalUtilityOfTraveling(0.0);
+        f.config.planCalcScore().addModeParams(nonNetworkWalk);
         PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
         transitWalk.setMarginalUtilityOfTraveling(0.0);
         f.config.planCalcScore().addModeParams(transitWalk);
-        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
-        egressWalk.setMarginalUtilityOfTraveling(0.0);
-        f.config.planCalcScore().addModeParams(egressWalk);
 
         Map<String, RoutingModule> routingModules = new HashMap<>();
-        routingModules.put(TransportMode.walk,
-                new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3));
+        routingModules.put(TransportMode.non_network_walk,
+                new TeleportationRoutingModule(TransportMode.non_network_walk, f.scenario, 1.1, 1.3));
         routingModules.put(TransportMode.bike,
                 new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3, 1.4));
 
@@ -324,29 +312,25 @@ public class SwissRailRaptorIntermodalTest {
         IntermodalFixture f = new IntermodalFixture();
 
         Map<String, RoutingModule> routingModules = new HashMap<>();
-        routingModules.put(TransportMode.walk,
-                new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3));
+        routingModules.put(TransportMode.non_network_walk,
+                new TeleportationRoutingModule(TransportMode.non_network_walk, f.scenario, 1.1, 1.3));
         routingModules.put(TransportMode.bike,
                 new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3, 1.4));
 
-        // we need to set special values for walk and bike as the defaults are the same for walk, bike and waiting
+        // we need to set special values for walk and bike as the defaults are the same for walk(=non_network_walk), bike and waiting
         // which would result in all options having the same cost in the end.
-        f.config.planCalcScore().getModes().get(TransportMode.walk).setMarginalUtilityOfTraveling(-7);
         f.config.planCalcScore().getModes().get(TransportMode.bike).setMarginalUtilityOfTraveling(-8);
 
-        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
-        accessWalk.setMarginalUtilityOfTraveling(0);
-        f.config.planCalcScore().addModeParams(accessWalk);
+        PlanCalcScoreConfigGroup.ModeParams nonNetworkWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
+        nonNetworkWalk.setMarginalUtilityOfTraveling(-7);
+        f.config.planCalcScore().addModeParams(nonNetworkWalk);
         PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
         transitWalk.setMarginalUtilityOfTraveling(0);
         f.config.planCalcScore().addModeParams(transitWalk);
-        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
-        egressWalk.setMarginalUtilityOfTraveling(0);
-        f.config.planCalcScore().addModeParams(egressWalk);
 
         f.srrConfig.setUseIntermodalAccessEgress(true);
         IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
-        walkAccess.setMode(TransportMode.walk);
+        walkAccess.setMode(TransportMode.non_network_walk);
         walkAccess.setRadius(100); // force to nearest stops
         walkAccess.setInitialSearchRadius(100);
         f.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -426,29 +410,25 @@ public class SwissRailRaptorIntermodalTest {
         IntermodalFixture f = new IntermodalFixture();
 
         Map<String, RoutingModule> routingModules = new HashMap<>();
-        routingModules.put(TransportMode.walk,
-                new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3));
+        routingModules.put(TransportMode.non_network_walk,
+                new TeleportationRoutingModule(TransportMode.non_network_walk, f.scenario, 1.1, 1.3));
         routingModules.put(TransportMode.bike,
                 new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3, 1.4));
 
-        // we need to set special values for walk and bike as the defaults are the same for walk, bike and waiting
+        // we need to set special values for walk and bike as the defaults are the same for walk(=non_network_walk), bike and waiting
         // which would result in all options having the same cost in the end.
-        f.config.planCalcScore().getModes().get(TransportMode.walk).setMarginalUtilityOfTraveling(-7);
         f.config.planCalcScore().getModes().get(TransportMode.bike).setMarginalUtilityOfTraveling(-8);
 
-        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
-        accessWalk.setMarginalUtilityOfTraveling(0);
-        f.config.planCalcScore().addModeParams(accessWalk);
+        PlanCalcScoreConfigGroup.ModeParams nonNetworkWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
+        nonNetworkWalk.setMarginalUtilityOfTraveling(-7);
+        f.config.planCalcScore().addModeParams(nonNetworkWalk);
         PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
         transitWalk.setMarginalUtilityOfTraveling(0);
         f.config.planCalcScore().addModeParams(transitWalk);
-        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
-        egressWalk.setMarginalUtilityOfTraveling(0);
-        f.config.planCalcScore().addModeParams(egressWalk);
 
         f.srrConfig.setUseIntermodalAccessEgress(true);
         IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
-        walkAccess.setMode(TransportMode.walk);
+        walkAccess.setMode(TransportMode.non_network_walk);
         walkAccess.setRadius(100); // force to nearest stops
         f.srrConfig.addIntermodalAccessEgress(walkAccess);
 
@@ -532,29 +512,25 @@ public class SwissRailRaptorIntermodalTest {
         IntermodalFixture f = new IntermodalFixture();
 
         Map<String, RoutingModule> routingModules = new HashMap<>();
-        routingModules.put(TransportMode.walk,
-                new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3));
+        routingModules.put(TransportMode.non_network_walk,
+                new TeleportationRoutingModule(TransportMode.non_network_walk, f.scenario, 1.1, 1.3));
         routingModules.put(TransportMode.bike,
                 new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3, 1.4));
 
-        // we need to set special values for walk and bike as the defaults are the same for walk, bike and waiting
+        // we need to set special values for walk and bike as the defaults are the same for walk(=non_network_walk), bike and waiting
         // which would result in all options having the same cost in the end.
-        f.config.planCalcScore().getModes().get(TransportMode.walk).setMarginalUtilityOfTraveling(-7);
         f.config.planCalcScore().getModes().get(TransportMode.bike).setMarginalUtilityOfTraveling(-8);
 
-        PlanCalcScoreConfigGroup.ModeParams accessWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
-        accessWalk.setMarginalUtilityOfTraveling(0);
-        f.config.planCalcScore().addModeParams(accessWalk);
+        PlanCalcScoreConfigGroup.ModeParams nonNetworkWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
+        nonNetworkWalk.setMarginalUtilityOfTraveling(-7);
+        f.config.planCalcScore().addModeParams(nonNetworkWalk);
         PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
         transitWalk.setMarginalUtilityOfTraveling(0);
         f.config.planCalcScore().addModeParams(transitWalk);
-        PlanCalcScoreConfigGroup.ModeParams egressWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
-        egressWalk.setMarginalUtilityOfTraveling(0);
-        f.config.planCalcScore().addModeParams(egressWalk);
 
         f.srrConfig.setUseIntermodalAccessEgress(true);
         IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
-        walkAccess.setMode(TransportMode.walk);
+        walkAccess.setMode(TransportMode.non_network_walk);
         walkAccess.setDirections("ACCESS,EGRESS");
         walkAccess.setRadius(100); // force to nearest stops
         walkAccess.setInitialSearchRadius(100);
@@ -971,16 +947,15 @@ public class SwissRailRaptorIntermodalTest {
             // ---
 
             this.routingModules = new HashMap<>();
-            this.routingModules.put(TransportMode.walk,
-                    new TeleportationRoutingModule(TransportMode.walk, this.scenario, 1.1, 1.3));
+            this.routingModules.put(TransportMode.non_network_walk,
+                    new TeleportationRoutingModule(TransportMode.non_network_walk, this.scenario, 1.1, 1.3));
             this.routingModules.put(TransportMode.non_network_walk,
                     new TeleportationRoutingModule(TransportMode.non_network_walk, this.scenario, 1.1, 1.3));
             this.routingModules.put(TransportMode.bike,
                     new TeleportationRoutingModule(TransportMode.bike, this.scenario, 10, 1.4)); // make bike very fast
 
-            // we need to set special values for walk and bike as the defaults are the same for walk, bike and waiting
+            // we need to set special values for walk and bike as the defaults are the same for walk (=non_network_walk), bike and waiting
             // which would result in all options having the same cost in the end.
-            this.config.planCalcScore().getModes().get(TransportMode.walk).setMarginalUtilityOfTraveling(-7);
             this.config.planCalcScore().getModes().get(TransportMode.bike).setMarginalUtilityOfTraveling(-8);
 
             this.config.transitRouter().setMaxBeelineWalkConnectionDistance(150);
@@ -1009,7 +984,7 @@ public class SwissRailRaptorIntermodalTest {
 
             this.srrConfig.setUseIntermodalAccessEgress(true);
             IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
-            walkAccess.setMode(TransportMode.walk);
+            walkAccess.setMode(TransportMode.non_network_walk);
             walkAccess.setRadius(500);
             walkAccess.setInitialSearchRadius(500);
             this.srrConfig.addIntermodalAccessEgress(walkAccess);
