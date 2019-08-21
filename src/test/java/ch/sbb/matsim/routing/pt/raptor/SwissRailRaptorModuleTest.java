@@ -208,9 +208,9 @@ public class SwissRailRaptorModuleTest {
         Assert.assertEquals("work", ((Activity) planElements.get(10)).getType());
 
         Assert.assertEquals(TransportMode.bike, ((Leg) planElements.get(1)).getMode());
-        Assert.assertEquals(TransportMode.transit_walk, ((Leg) planElements.get(3)).getMode());
+        Assert.assertEquals(TransportMode.non_network_walk, ((Leg) planElements.get(3)).getMode());
         Assert.assertEquals(TransportMode.pt, ((Leg) planElements.get(5)).getMode());
-        Assert.assertEquals(TransportMode.transit_walk, ((Leg) planElements.get(7)).getMode());
+        Assert.assertEquals(TransportMode.non_network_walk, ((Leg) planElements.get(7)).getMode());
         Assert.assertEquals(TransportMode.bike, ((Leg) planElements.get(9)).getMode());
 
         Assert.assertEquals(0.0, ((Activity) planElements.get(2)).getMaximumDuration(), 0.0);

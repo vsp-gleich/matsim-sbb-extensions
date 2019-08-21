@@ -255,7 +255,7 @@ public class SwissRailRaptorTest {
         assertEquals(5, legs.size());
         assertEquals(TransportMode.non_network_walk, legs.get(0).getMode());
         assertEquals(TransportMode.pt, legs.get(1).getMode());
-        assertEquals(TransportMode.transit_walk, legs.get(2).getMode());
+        assertEquals(TransportMode.non_network_walk, legs.get(2).getMode());
         assertEquals(TransportMode.pt, legs.get(3).getMode());
         assertEquals(TransportMode.non_network_walk, legs.get(4).getMode());
         assertTrue("expected TransitRoute in leg.", legs.get(1).getRoute() instanceof ExperimentalTransitRoute);
@@ -339,7 +339,7 @@ public class SwissRailRaptorTest {
         assertEquals(TransportMode.non_network_walk, legs.get(0).getMode());
         assertEquals(TransportMode.pt, legs.get(1).getMode());
         assertEquals(f.redLine.getId(), ((ExperimentalTransitRoute) legs.get(1).getRoute()).getLineId());
-        assertEquals(TransportMode.transit_walk, legs.get(2).getMode());
+        assertEquals(TransportMode.non_network_walk, legs.get(2).getMode());
         assertEquals(TransportMode.pt, legs.get(3).getMode());
         assertEquals(f.blueLine.getId(), ((ExperimentalTransitRoute) legs.get(3).getRoute()).getLineId());
         assertEquals(TransportMode.non_network_walk, legs.get(4).getMode());
@@ -378,7 +378,7 @@ public class SwissRailRaptorTest {
         assertEquals(TransportMode.non_network_walk, legs.get(0).getMode());
         assertEquals(TransportMode.pt, legs.get(1).getMode());
         assertEquals(f.redLine.getId(), ((ExperimentalTransitRoute) legs.get(1).getRoute()).getLineId());
-        assertEquals(TransportMode.transit_walk, legs.get(2).getMode());
+        assertEquals(TransportMode.non_network_walk, legs.get(2).getMode());
         assertEquals(TransportMode.pt, legs.get(3).getMode());
         assertEquals(f.blueLine.getId(), ((ExperimentalTransitRoute) legs.get(3).getRoute()).getLineId());
         assertEquals(TransportMode.non_network_walk, legs.get(4).getMode());
@@ -858,7 +858,7 @@ public class SwissRailRaptorTest {
         assertEquals(5, legs.size());
         assertEquals(TransportMode.non_network_walk, legs.get(0).getMode());
         assertEquals("rail", legs.get(1).getMode());
-        assertEquals(TransportMode.transit_walk, legs.get(2).getMode());
+        assertEquals(TransportMode.non_network_walk, legs.get(2).getMode());
         assertEquals("road", legs.get(3).getMode());
         assertEquals(TransportMode.non_network_walk, legs.get(4).getMode());
     }
