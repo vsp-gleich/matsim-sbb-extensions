@@ -957,6 +957,39 @@ public class SwissRailRaptorTest {
         }
     }
 
+
+    /**
+     * Tests whether Raptor chooses transit_walk as mode, if agent departure occurs after pt lines have no more departures.
+     * The agent's fromFacility is before node, while his toFacility is after node 2. The blue line goes between node 1
+     * and node 2; however, the last departure occurs at 9:46 AM. The departure time for the dummy agent is set to 11 AM.
+     * Expectation: the dummy agent will use transit_walk to get from the fromFacility to the toFacility, without passing
+     * by the pt stop.
+     */
+    @Test
+    public void testDepartureAfterLastBus(){
+        Fixture f = new Fixture();
+        f.init();
+        RaptorParameters raptorParams = RaptorUtils.createParameters(f.config);
+        TransitRouter router = createTransitRouter(f.schedule, f.config, f.network);
+        Coord fromCoord = new Coord(3800, 5100);
+        Coord toCoord = new Coord(8100, 5050);
+        List<Leg> legs = router.calcRoute(new FakeFacility(fromCoord), new FakeFacility(toCoord), 11.0*3600, null);
+        assertEquals(1, legs.size());
+        assertEquals(TransportMode.transit_walk, legs.get(0).getMode());
+
+        double actualTravelTime = 0.0;
+        for (Leg leg : legs) {
+            actualTravelTime += leg.getTravelTime();
+        }
+        double expectedTravelTime = CoordUtils.calcEuclideanDistance(fromCoord, toCoord) / raptorParams.getBeelineWalkSpeed();
+        assertEquals(expectedTravelTime, actualTravelTime, MatsimTestCase.EPSILON);
+    }
+
+    @Test
+    public void testWalkIsFaster(){
+
+    }
+
     /**
      * Generates the following network for testing:
      * <pre>
