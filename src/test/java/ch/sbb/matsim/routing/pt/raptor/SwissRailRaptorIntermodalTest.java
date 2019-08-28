@@ -22,11 +22,10 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.config.groups.QSimConfigGroup;
-import org.matsim.core.population.routes.NetworkRoute;
-import org.matsim.core.population.routes.RouteFactories;
-import org.matsim.core.population.routes.RouteFactory;
-import org.matsim.core.population.routes.RouteUtils;
+import org.matsim.core.population.PopulationUtils;
+import org.matsim.core.population.routes.*;
 import org.matsim.core.router.*;
+import org.matsim.core.router.costcalculators.FreespeedTravelTimeAndDisutility;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.router.util.LeastCostPathCalculatorFactory;
 import org.matsim.core.router.util.TravelDisutility;
@@ -817,11 +816,6 @@ public class SwissRailRaptorIntermodalTest {
         IntermodalCarFixture f = new IntermodalCarFixture();
 
 //        f.srrConfig.getIntermodalAccessEgressParameterSets().removeIf(paramset -> paramset.getMode().equals("bike")); // we only want "walk" as mode
-//        PopulationFactory pf = f.scenario.getPopulation().getFactory();
-//        LeastCostPathCalculator calc = new LeastCostPathCalculatorFactory().createPathCalculator(f.scenario.getNetwork());
-//
-//        RoutingModule car = f.routingModules.put("car", new NetworkRoutingModule("car", pf,f.scenario.getNetwork(), calc);
-//        f.routingModules.put("car", car);
         Facility fromFac = new FakeFacility(new Coord(0 , 0), Id.create("from", Link.class)); // stops B or E, B is intermodal and triggered the bug
         Facility toFac = new FakeFacility(new Coord(2200, 0), Id.create("to", Link.class)); // stop F
 
@@ -830,6 +824,16 @@ public class SwissRailRaptorIntermodalTest {
         SwissRailRaptor raptor = new SwissRailRaptor(data, new DefaultRaptorParametersForPerson(f.scenario.getConfig()),
                 new LeastCostRaptorRouteSelector(), stopFinder, null);
 
+
+//        System.out.println(f.routingModules.values().toString());
+//        for (Link i : f.scenario.getNetwork().getLinks().values()) {
+//            System.out.println(i.getId().toString() + " -- " ) ;
+//            for (String j : i.getAllowedModes()) {
+//                System.out.println(j);
+//            }
+//
+////            System.out.println(i.getId().toString());
+//        }
         List<Leg> legs = raptor.calcRoute(fromFac, toFac, 5. * 3600, f.dummyPerson);
         for (Leg leg : legs) {
             System.out.println(leg);
@@ -1084,32 +1088,6 @@ public class SwissRailRaptorIntermodalTest {
             this.config = ConfigUtils.createConfig(this.srrConfig);
             this.scenario = ScenarioUtils.createScenario(this.config);
 
-//            Collection<String> mainModes = new ArrayList<>();
-//            mainModes.add(TransportMode.pt);
-//            mainModes.add(TransportMode.car);
-//            this.config.qsim().setMainModes(mainModes);
-
-            config.qsim().setVehiclesSource( QSimConfigGroup.VehiclesSource.modeVehicleTypesFromVehiclesData );
-            Set<String> networkModes = new HashSet<>( );
-            networkModes.add( "car2");
-            config.plansCalcRoute().setNetworkModes( networkModes );
-
-            double margUtlTravPt = config.planCalcScore().getModes().get( TransportMode.pt ).getMarginalUtilityOfTraveling();
-            config.planCalcScore().addModeParams( new PlanCalcScoreConfigGroup.ModeParams("car2").setMarginalUtilityOfTraveling( margUtlTravPt ) );
-
-            VehiclesFactory vf = scenario.getVehicles().getFactory();
-            VehicleType vehType = vf.createVehicleType( Id.create( "car2", VehicleType.class ) );
-            vehType.setMaximumVelocity( 25./3.6 );
-            scenario.getVehicles().addVehicleType( vehType );
-
-//            String[] strings = {"car","pt"} ;
-//            this.config.changeMode().setModes(strings);
-//
-//            this.config.plansCalcRoute().setNetworkModes( Arrays.asList( TransportMode.car, TransportMode.pt ) );
-
-            PlanCalcScoreConfigGroup.ModeParams params = new PlanCalcScoreConfigGroup.ModeParams( "car2" ) ;
-            config.planCalcScore().addModeParams( params );
-
             Network network = this.scenario.getNetwork();
             NetworkFactory nf = network.getFactory();
 
@@ -1131,14 +1109,18 @@ public class SwissRailRaptorIntermodalTest {
             Link linkCB = nf.createLink(Id.create("CB", Link.class), nodeC, nodeB);
             Link linkCC = nf.createLink(Id.create("CC", Link.class), nodeC, nodeC);
 
-            Set<String> modes = new HashSet<>(Arrays.asList("car2", "pt"));
-            linkAA.setAllowedModes(modes);
-            linkAB.setAllowedModes(modes);
-            linkBA.setAllowedModes(modes);
-            linkBB.setAllowedModes(modes);
+            Set<String> modes = new HashSet<>(Arrays.asList(TransportMode.car));
+            Set<String> modes2 = new HashSet<>(Arrays.asList("blahblah"));
+            linkAA.setAllowedModes(modes2);
+            linkAB.setAllowedModes(modes2);
+            linkBA.setAllowedModes(modes2);
+            linkBB.setAllowedModes(modes2);
             linkBC.setAllowedModes(modes);
             linkCB.setAllowedModes(modes);
             linkCC.setAllowedModes(modes);
+
+            linkBA.setAllowedModes(null);
+            linkAB.setAllowedModes(null);
 
             network.addLink(linkAA);
             network.addLink(linkAB);
@@ -1147,6 +1129,12 @@ public class SwissRailRaptorIntermodalTest {
             network.addLink(linkCC);
             network.addLink(linkBC);
             network.addLink(linkCB);
+
+            for (Link i : network.getLinks().values()) {
+                i.setCapacity(1000.);
+                i.setFreespeed(50./3.6);
+                i.setLength(1000.);
+            }
 
 
             // ----
@@ -1187,25 +1175,14 @@ public class SwissRailRaptorIntermodalTest {
             this.routingModules = new HashMap<>();
             this.routingModules.put(TransportMode.non_network_walk,
                     new TeleportationRoutingModule(TransportMode.non_network_walk, this.scenario, 1.1, 1.3));
-//            this.routingModules.put(TransportMode.car,
-//                    new NetworkRoutingModule(TransportMode.car))
-//            VehiclesFactory vf = scenario.getVehicles().getFactory();
-//            VehicleType vehType = vf.createVehicleType( Id.create( TransportMode.car, VehicleType.class ) );
-//            vehType.setMaximumVelocity( 25./3.6 );
-//            scenario.getVehicles().addVehicleType( vehType );
 
+            // adds car routing module
+            FreespeedTravelTimeAndDisutility freespeed = new FreespeedTravelTimeAndDisutility(-0.0016666666666666668D, 0.0016666666666666668D, 0.0D);
+            DijkstraFactory df = new DijkstraFactory();
+            LeastCostPathCalculator routeAlgo = df.createPathCalculator(this.scenario.getNetwork(), freespeed, freespeed);
+            NetworkRoutingModule carRoutingModule = new NetworkRoutingModule(TransportMode.car, this.scenario.getPopulation().getFactory(), this.scenario.getNetwork(), routeAlgo);
+            routingModules.put(TransportMode.car, carRoutingModule);
 
-//            PopulationFactory pf = this.scenario.getPopulation().getFactory();
-//            Network sd;
-//            TravelDisutility travelDisutility = null;
-//            TravelTime travelTime = null;
-//            LeastCostPathCalculator routeAlgo = new LeastCostPathCalculatorFactory() {
-//                @Override
-//                public LeastCostPathCalculator createPathCalculator(Network network, TravelDisutility travelDisutility, TravelTime travelTime) {
-//                    return null;
-//                }
-//            }.createPathCalculator(network, travelDisutility, travelTime);
-//            RoutingModule carModule = new NetworkRoutingModule(TransportMode.car, pf, scenario.getNetwork(), routeAlgo );
             this.config.transitRouter().setMaxBeelineWalkConnectionDistance(150);
 
             PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams(TransportMode.transit_walk);
@@ -1216,20 +1193,32 @@ public class SwissRailRaptorIntermodalTest {
             nonNetworkWalk.setMarginalUtilityOfTraveling(-7);
             this.config.planCalcScore().addModeParams(nonNetworkWalk);
 
-            PlanCalcScoreConfigGroup.ModeParams carParams = new PlanCalcScoreConfigGroup.ModeParams("car2");
+            PlanCalcScoreConfigGroup.ModeParams carParams = new PlanCalcScoreConfigGroup.ModeParams(TransportMode.car);
             nonNetworkWalk.setMarginalUtilityOfTraveling(0);
             this.config.planCalcScore().addModeParams(carParams);
 
+
+            config.qsim().setVehiclesSource( QSimConfigGroup.VehiclesSource.modeVehicleTypesFromVehiclesData );
+
+            VehiclesFactory vf = scenario.getVehicles().getFactory();
+            VehicleType vehType = vf.createVehicleType( Id.create( TransportMode.car, VehicleType.class ) );
+            vehType.setMaximumVelocity( 100./3.6 );
+            scenario.getVehicles().addVehicleType( vehType );
+
+            this.config.plansCalcRoute().setNetworkModes( Arrays.asList( TransportMode.car, TransportMode.pt ) );
+            scenario.getPopulation().getFactory().getRouteFactories().setRouteFactory( GenericRouteImpl.class, new GenericRouteFactory() );
+
+            // Intermodal
             this.srrConfig.setUseIntermodalAccessEgress(true);
             IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(1100);
+            walkAccess.setRadius(500);
             walkAccess.setInitialSearchRadius(1100);
             this.srrConfig.addIntermodalAccessEgress(walkAccess);
 
             IntermodalAccessEgressParameterSet carAccess = new IntermodalAccessEgressParameterSet();
-            carAccess.setMode("car2");
-            carAccess.setRadius(1100);
+            carAccess.setMode(TransportMode.car);
+            carAccess.setRadius(1500);
             carAccess.setInitialSearchRadius(1100);
             this.srrConfig.addIntermodalAccessEgress(carAccess);
 
