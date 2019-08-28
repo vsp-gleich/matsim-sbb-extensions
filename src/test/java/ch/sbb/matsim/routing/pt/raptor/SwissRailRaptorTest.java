@@ -985,10 +985,6 @@ public class SwissRailRaptorTest {
         assertEquals(expectedTravelTime, actualTravelTime, MatsimTestCase.EPSILON);
     }
 
-    @Test
-    public void testWalkIsFaster(){
-
-    }
 
     /**
      * Generates the following network for testing:
