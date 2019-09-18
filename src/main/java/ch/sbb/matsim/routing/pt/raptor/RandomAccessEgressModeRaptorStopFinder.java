@@ -105,9 +105,7 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 	private void addInitialStopsForParamSet(Facility facility, Person person, double departureTime, Direction direction,
 		RaptorParameters parameters, SwissRailRaptorData data, double x, double y, String personId,
 		List<InitialStop> initialStops, IntermodalAccessEgressParameterSet paramset) {
-			if ( !paramset.getDirections().contains(direction) ) {
-			return;
-		}
+
 		double radius = paramset.getInitialSearchRadius();
 		String mode = paramset.getMode();
 		String overrideMode = null;

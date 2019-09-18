@@ -115,10 +115,6 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 		String personId = person.getId().toString();
 		List<InitialStop> initialStops = new ArrayList<>();
 		for (IntermodalAccessEgressParameterSet paramset : srrCfg.getIntermodalAccessEgressParameterSets()) {
-			if ( !paramset.getDirections().contains(direction) ) {
-				// this access/egress mode is not allowed for the direction we are looking at. Skip it.
-				continue;
-			}
 			String mode = paramset.getMode();
 			String overrideMode = null;
 //			if (mode.equals(TransportMode.walk) || mode.equals(TransportMode.transit_walk)) {
