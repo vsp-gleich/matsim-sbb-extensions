@@ -32,6 +32,12 @@ public class RaptorParameters {
      */
     private double extensionRadius = 200.0;
 
+    /**
+     * Factor with which direct walk generalized cost is multiplied before 
+     * it is compared to the pt generalized cost. 
+     * Set to a very high value to reduce direct walk results.
+     */
+	private double directWalkFactor = 1.0;
 
     private double beelineWalkSpeed; // meter / second
 
@@ -68,6 +74,14 @@ public class RaptorParameters {
 
     public void setExtensionRadius(double extensionRadius) {
         this.extensionRadius = extensionRadius;
+    }
+    
+    public double getDirectWalkFactor() {
+        return this.directWalkFactor;
+    }
+
+    public void setDirectWalkFactor(double directWalkFactor) {
+        this.directWalkFactor = directWalkFactor;
     }
 
     public double getBeelineWalkSpeed() {
