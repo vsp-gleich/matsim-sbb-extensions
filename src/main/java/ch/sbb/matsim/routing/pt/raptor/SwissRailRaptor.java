@@ -104,7 +104,8 @@ public class SwissRailRaptor implements TransitRouter {
 		 * foundRoute.parts.size() == 0 can happen if SwissRasilRaptorCore.createRaptorRoute() finds a trip made up of,
 		 * only 2 parts which consists only of an access and an egress leg without any pt leg inbetween.
 		 */
-        if (foundRoute == null || foundRoute.parts.size() == 0 || directWalk.getTotalCosts() * parameters.getDirectWalkFactor() < foundRoute.getTotalCosts()) {
+        if (foundRoute == null || foundRoute.parts.size() == 0 || hasNoPtLeg(foundRoute.parts) || 
+        		directWalk.getTotalCosts() * parameters.getDirectWalkFactor() < foundRoute.getTotalCosts()) {
         	if (person == null) {
             	log.debug("No route found for person null: trip from x=" + fromFacility.getCoord().getX() + ",y=" + fromFacility.getCoord().getY() + " departure at " + departureTime + " to x=" + toFacility.getCoord().getX() + ",y=" + toFacility.getCoord().getY());
         	} else {
@@ -116,6 +117,16 @@ public class SwissRailRaptor implements TransitRouter {
         List<Leg> legs = RaptorUtils.convertRouteToLegs(foundRoute);
         return legs;
     }
+    
+	private boolean hasNoPtLeg(List<RoutePart> parts) {
+		for (RoutePart part : parts) {
+			// if the route part has a TransitLine, it must be a real pt leg
+			if (part.line != null) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 	private List<Leg> performRangeQuery(Facility fromFacility, Facility toFacility, double desiredDepartureTime, Person person, RaptorParameters parameters) {
         SwissRailRaptorConfigGroup srrConfig = parameters.getConfig();
