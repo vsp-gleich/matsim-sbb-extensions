@@ -972,7 +972,7 @@ public class SwissRailRaptorCore {
             if (this.destinationPath.comingFrom == null) {
                 return true;
             }
-            PathElement pe = this.destinationPath.comingFrom;
+            PathElement pe = this.destinationPath;
             while (pe != null) {
                 if (!pe.isTransfer) {
                     return false;
