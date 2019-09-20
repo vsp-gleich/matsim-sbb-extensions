@@ -257,9 +257,6 @@ public class SwissRailRaptorIntermodalTest {
     /**
      * Test that if start and end are close to each other, such that the intermodal
      * access and egress go to/from the same stop, still a direct transit_walk is returned.
-     * 
-     * Aug'19: The pt router shall no longer return direct walks, so check instead that the
-     * correct intermodal trip via a transit stop is returned.
      */
     @Test
     public void testIntermodalTrip_withoutPt() {
@@ -305,6 +302,164 @@ public class SwissRailRaptorIntermodalTest {
         Leg leg = legs.get(0);
         Assert.assertEquals(TransportMode.transit_walk, leg.getMode());
         Assert.assertEquals(Math.sqrt(1000*1000+2000*2000)*1.3, leg.getRoute().getDistance(), 1e-7);
+    }
+    
+    @Test
+    public void testDirectWalkFactor() {
+        IntermodalFixture f = new IntermodalFixture();
+
+        f.config.planCalcScore().setPerforming_utils_hr(6.0);
+        PlanCalcScoreConfigGroup.ModeParams nonNetworkWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
+        nonNetworkWalk.setMarginalUtilityOfTraveling(0.0);
+        f.config.planCalcScore().addModeParams(nonNetworkWalk);
+        PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
+        transitWalk.setMarginalUtilityOfTraveling(0.0);
+        f.config.planCalcScore().addModeParams(transitWalk);
+        PlanCalcScoreConfigGroup.ModeParams bike = new PlanCalcScoreConfigGroup.ModeParams("bike");
+        bike.setMarginalUtilityOfTraveling(0.0);
+        f.config.planCalcScore().addModeParams(bike);
+
+        Map<String, RoutingModule> routingModules = new HashMap<>();
+        routingModules.put(TransportMode.non_network_walk,
+            new TeleportationRoutingModule(TransportMode.non_network_walk, f.scenario, 1.1, 1.3));
+        routingModules.put(TransportMode.walk,
+                new TeleportationRoutingModule(TransportMode.walk, f.scenario, 1.1, 1.3));
+        routingModules.put(TransportMode.bike,
+            new TeleportationRoutingModule(TransportMode.bike, f.scenario, 3.0, 1.4));
+
+        f.srrConfig.setUseIntermodalAccessEgress(true);
+        IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
+        walkAccess.setMode(TransportMode.non_network_walk);
+        walkAccess.setRadius(5000);
+        walkAccess.setInitialSearchRadius(5000);
+        f.srrConfig.addIntermodalAccessEgress(walkAccess);
+        IntermodalAccessEgressParameterSet bikeAccess = new IntermodalAccessEgressParameterSet();
+        bikeAccess.setMode(TransportMode.bike);
+        bikeAccess.setRadius(5000);
+        bikeAccess.setInitialSearchRadius(5000);
+        bikeAccess.setStopFilterAttribute("bikeAccessible");
+        bikeAccess.setLinkIdAttribute("accessLinkId_bike");
+        bikeAccess.setStopFilterValue("true");
+        f.srrConfig.addIntermodalAccessEgress(bikeAccess);
+
+        Facility fromFac = new FakeFacility(new Coord(9000, 15000), Id.create("from", Link.class));
+        Facility toFac = new FakeFacility(new Coord(10500, 15000), Id.create("to", Link.class));
+        
+        // direct walk factor off
+        f.config.transitRouter().setDirectWalkFactor(1.0);
+        SwissRailRaptorData data = SwissRailRaptorData.create(f.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f.config), f.scenario.getNetwork());
+        DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(null, new DefaultRaptorIntermodalAccessEgress(), routingModules);
+        SwissRailRaptor raptor = new SwissRailRaptor(data, new DefaultRaptorParametersForPerson(f.scenario.getConfig()),
+                new LeastCostRaptorRouteSelector(), stopFinder, null );
+
+        List<Leg> legs = raptor.calcRoute(fromFac, toFac, 7*3600, f.dummyPerson);
+        for (Leg leg : legs) {
+            System.out.println(leg);
+        }
+
+        Assert.assertEquals("wrong number of legs.", 1, legs.size());
+        Leg leg = legs.get(0);
+        Assert.assertEquals(TransportMode.transit_walk, leg.getMode());
+        Assert.assertEquals(Id.create("from", Link.class), leg.getRoute().getStartLinkId());
+        Assert.assertEquals(Id.create("to", Link.class), leg.getRoute().getEndLinkId());
+        
+        // direct walk factor on
+        f.config.transitRouter().setDirectWalkFactor(Double.POSITIVE_INFINITY);
+        data = SwissRailRaptorData.create(f.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f.config), f.scenario.getNetwork());
+        stopFinder = new DefaultRaptorStopFinder(null, new DefaultRaptorIntermodalAccessEgress(), routingModules);
+        raptor = new SwissRailRaptor(data, new DefaultRaptorParametersForPerson(f.scenario.getConfig()),
+                new LeastCostRaptorRouteSelector(), stopFinder, null );
+
+        legs = raptor.calcRoute(fromFac, toFac, 7*3600, f.dummyPerson);
+        for (Leg leg1 : legs) {
+            System.out.println(leg1);
+        }
+
+        Assert.assertEquals("wrong number of legs.", 5, legs.size());
+        leg = legs.get(0);
+        Assert.assertEquals(TransportMode.bike, leg.getMode());
+        Assert.assertEquals(Id.create("from", Link.class), leg.getRoute().getStartLinkId());
+        Assert.assertEquals(Id.create("bike_0", Link.class), leg.getRoute().getEndLinkId());
+        leg = legs.get(1);
+        Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
+        Assert.assertEquals(Id.create("bike_0", Link.class), leg.getRoute().getStartLinkId());
+        Assert.assertEquals(Id.create("pt_0", Link.class), leg.getRoute().getEndLinkId());
+        leg = legs.get(2);
+        Assert.assertEquals(TransportMode.pt, leg.getMode());
+        Assert.assertEquals(Id.create("pt_0", Link.class), leg.getRoute().getStartLinkId());
+        Assert.assertEquals(Id.create("pt_3", Link.class), leg.getRoute().getEndLinkId());
+        leg = legs.get(3);
+        Assert.assertEquals(TransportMode.non_network_walk, leg.getMode());
+        Assert.assertEquals(Id.create("pt_3", Link.class), leg.getRoute().getStartLinkId());
+        Assert.assertEquals(Id.create("bike_3", Link.class), leg.getRoute().getEndLinkId());
+        leg = legs.get(4);
+        Assert.assertEquals(TransportMode.bike, leg.getMode());
+        Assert.assertEquals(Id.create("bike_3", Link.class), leg.getRoute().getStartLinkId());
+        Assert.assertEquals(Id.create("to", Link.class), leg.getRoute().getEndLinkId());
+    }
+    
+    @Test
+    public void testAccessEgressModeFasterThanPt() {
+        IntermodalFixture f = new IntermodalFixture();
+        /* 
+         * setDirectWalkFactor(Double.POSITIVE_INFINITY) leads to the case where in SwissRailRaptor.calcRoute() both the found 
+         * route and the direct walk have cost infinity, so if we would not check for the found route to have at least one 
+         * RoutePart, the router would return 0 legs.
+         */
+        f.config.transitRouter().setDirectWalkFactor(Double.POSITIVE_INFINITY);
+
+        PlanCalcScoreConfigGroup.ModeParams nonNetworkWalk = new PlanCalcScoreConfigGroup.ModeParams("non_network_walk");
+        nonNetworkWalk.setMarginalUtilityOfTraveling(0.0);
+        f.config.planCalcScore().addModeParams(nonNetworkWalk);
+        PlanCalcScoreConfigGroup.ModeParams transitWalk = new PlanCalcScoreConfigGroup.ModeParams("transit_walk");
+        transitWalk.setMarginalUtilityOfTraveling(0.0);
+        f.config.planCalcScore().addModeParams(transitWalk);
+
+        Map<String, RoutingModule> routingModules = new HashMap<>();
+        routingModules.put(TransportMode.non_network_walk,
+            new TeleportationRoutingModule(TransportMode.non_network_walk, f.scenario, 1.1, 1.3));
+        routingModules.put(TransportMode.bike,
+            new TeleportationRoutingModule(TransportMode.bike, f.scenario, 100.0, 1.4));
+
+        f.srrConfig.setUseIntermodalAccessEgress(true);
+        IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
+        walkAccess.setMode(TransportMode.non_network_walk);
+        walkAccess.setRadius(10000);
+        walkAccess.setInitialSearchRadius(10000);
+        f.srrConfig.addIntermodalAccessEgress(walkAccess);
+        IntermodalAccessEgressParameterSet bikeAccess = new IntermodalAccessEgressParameterSet();
+        bikeAccess.setMode(TransportMode.bike);
+        bikeAccess.setRadius(10000);
+        bikeAccess.setInitialSearchRadius(10000);
+        bikeAccess.setStopFilterAttribute("bikeAccessible");
+        bikeAccess.setLinkIdAttribute("accessLinkId_bike");
+        bikeAccess.setStopFilterValue("true");
+        f.srrConfig.addIntermodalAccessEgress(bikeAccess);
+
+        SwissRailRaptorData data = SwissRailRaptorData.create(f.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f.config), f.scenario.getNetwork());
+        DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(null, new DefaultRaptorIntermodalAccessEgress(), routingModules);
+        SwissRailRaptor raptor = new SwissRailRaptor(data, new DefaultRaptorParametersForPerson(f.scenario.getConfig()),
+                new LeastCostRaptorRouteSelector(), stopFinder, null );
+
+        Facility fromFac = new FakeFacility(new Coord(10000, 10500), Id.create("from", Link.class));
+        Facility toFac = new FakeFacility(new Coord(10500, 10500), Id.create("to", Link.class));
+
+        List<Leg> legs = raptor.calcRoute(fromFac, toFac, 7*3600, f.dummyPerson);
+        for (Leg leg : legs) {
+            System.out.println(leg);
+        }
+        
+        /* 
+         * Going by access/egress mode bike from "fromFac" to stop 3 (which is bikeAccessible) and from there by bike
+         * to the destination is faster than any alternative including pt (because bike is extremely fast in this test).
+         * Therefore, the raptor returns as fastest path a v-shaped bike trip from the fromFac via stop 3 to the toFac,
+         * alternatives including pt are not found  
+         */
+        Assert.assertEquals("wrong number of legs.", 1, legs.size());
+        Leg leg = legs.get(0);
+        Assert.assertEquals(TransportMode.transit_walk, leg.getMode());
+        Assert.assertEquals(Id.create("from", Link.class), leg.getRoute().getStartLinkId());
+        Assert.assertEquals(Id.create("to", Link.class), leg.getRoute().getEndLinkId());
     }
 
     @Test

@@ -67,6 +67,7 @@ public final class RaptorUtils {
 
         raptorParams.setSearchRadius(config.transitRouter().getSearchRadius());
         raptorParams.setExtensionRadius(config.transitRouter().getExtensionRadius());
+        raptorParams.setDirectWalkFactor(config.transitRouter().getDirectWalkFactor());
 
         raptorParams.setMarginalUtilityOfWaitingPt_utl_s(trConfig.getMarginalUtilityOfWaitingPt_utl_s());
 

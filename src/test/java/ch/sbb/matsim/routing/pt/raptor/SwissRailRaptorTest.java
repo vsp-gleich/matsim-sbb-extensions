@@ -203,6 +203,25 @@ public class SwissRailRaptorTest {
         Coord toCoord = new Coord(8000, 3000);
         List<Leg> legs = router.calcRoute(new FakeFacility(fromCoord), new FakeFacility(toCoord), 5.0*3600, null);
         
+        assertEquals(1, legs.size());
+        assertEquals(TransportMode.transit_walk, legs.get(0).getMode());
+        assertEquals(4000*1.3, legs.get(0).getRoute().getDistance(), 0.0);
+        double actualTravelTime = legs.get(0).getTravelTime();
+        double expectedTravelTime = CoordUtils.calcEuclideanDistance(fromCoord, toCoord) / raptorParams.getBeelineWalkSpeed();
+        assertEquals(expectedTravelTime, actualTravelTime, MatsimTestCase.EPSILON);
+    }
+    
+    @Test
+    public void testDirectWalkFactor() {
+        Fixture f = new Fixture();
+        f.init();
+        f.config.transitRouter().setDirectWalkFactor(100.0);
+        RaptorParameters raptorParams = RaptorUtils.createParameters(f.config);
+        TransitRouter router = createTransitRouter(f.schedule, f.config, f.network);
+        Coord fromCoord = new Coord(4000, 3000);
+        Coord toCoord = new Coord(8000, 3000);
+        List<Leg> legs = router.calcRoute(new FakeFacility(fromCoord), new FakeFacility(toCoord), 5.0*3600, null);
+        
         assertEquals(3, legs.size());
         assertEquals(TransportMode.non_network_walk, legs.get(0).getMode());
         assertEquals(TransportMode.pt, legs.get(1).getMode());
@@ -221,7 +240,6 @@ public class SwissRailRaptorTest {
         assertEquals(expectedEgressWalkTravelTime, legs.get(2).getTravelTime(), 1.0);
         assertEquals((5002-3000)*1.3, legs.get(2).getRoute().getDistance(), 0.0);
     }
-
 
     @Test
     public void testSingleLine_DifferentWaitingTime() {
