@@ -4,7 +4,6 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 
 import org.apache.log4j.Logger;
-import org.jfree.util.Log;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
@@ -26,7 +25,6 @@ import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
-import org.matsim.utils.objectattributes.ObjectAttributes;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -36,21 +34,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author mrieser / Simunto GmbH
  */
 public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder {
 
-//	private final ObjectAttributes personAttributes;
 	private final RaptorIntermodalAccessEgress intermodalAE;
 	private final Map<String, RoutingModule> routingModules;
 	private static final Logger log = Logger.getLogger( SwissRailRaptorCore.class ) ;
 
 	@Inject
 	public RandomAccessEgressModeRaptorStopFinder(Population population, Config config, RaptorIntermodalAccessEgress intermodalAE, Map<String, Provider<RoutingModule>> routingModuleProviders) {
-//		this.personAttributes = population == null ? null : population.getPersonAttributes();
 		this.intermodalAE = intermodalAE;
 
 		SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
@@ -64,7 +59,6 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 	}
 
 	public RandomAccessEgressModeRaptorStopFinder(Population population, RaptorIntermodalAccessEgress intermodalAE, Map<String, RoutingModule> routingModules) {
-//		this.personAttributes = population == null ? null : population.getPersonAttributes();
 		this.intermodalAE = intermodalAE;
 		this.routingModules = routingModules;
 	}
@@ -106,16 +100,7 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 		RaptorParameters parameters, SwissRailRaptorData data, double x, double y, String personId,
 		List<InitialStop> initialStops, IntermodalAccessEgressParameterSet paramset) {
 
-		double radius = paramset.getInitialSearchRadius();
 		String mode = paramset.getMode();
-		String overrideMode = null;
-//		if (mode.equals(TransportMode.walk) || mode.equals(TransportMode.transit_walk)) {
-			// yyyyyy Das passt nicht zusammen mit meinen Annahmen.  "walk" kann durchaus ein "network walk" sein; das wuerde hier dann
-			// uebergebuegelt werden.  Ist diese Abfrage denn noetig?  kai, jun'19
-			// Habe gerade mal "walk" an den entscheidenden Stellen durch "bike" ersetzt; damit funktioniert es dann wie vorgesehen.  Das
-			// impliziert erstmal, dass "walk" hier problematisch ist.  Ob die Weglassung woanders Probleme macht, weiss ich nicht.  kai, jun'19
-//			overrideMode = TransportMode.non_network_walk; 
-//		}
 		String linkIdAttribute = paramset.getLinkIdAttribute();
 		String personFilterAttribute = paramset.getPersonFilterAttribute();
 		String personFilterValue = paramset.getPersonFilterValue();
@@ -124,7 +109,6 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 
 		boolean personMatches = true;
 		if (personFilterAttribute != null) {
-//			Object attr = this.personAttributes.getAttribute(personId, personFilterAttribute);
 			Object attr = person.getAttributes().getAttribute( personFilterAttribute ) ;
 			String attrValue = attr == null ? null : attr.toString();
 			personMatches = personFilterValue.equals(attrValue);
@@ -179,13 +163,6 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 				if (routeParts == null) {
 					// the router for the access/egress mode could not find a route, skip that access/egress mode
 					continue;
-				}
-				if (overrideMode != null) {
-					for (PlanElement pe : routeParts) {
-						if (pe instanceof Leg) {
-							((Leg) pe).setMode(overrideMode);
-						}
-					}
 				}
 				if (stopFacility != stop) {
 					if (direction == Direction.ACCESS) {

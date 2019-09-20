@@ -38,13 +38,11 @@ import java.util.stream.Collectors;
  */
 public class DefaultRaptorStopFinder implements RaptorStopFinder {
 
-//	private final ObjectAttributes personAttributes;
 	private final RaptorIntermodalAccessEgress intermodalAE;
 	private final Map<String, RoutingModule> routingModules;
 
 	@Inject
 	public DefaultRaptorStopFinder(Population population, Config config, RaptorIntermodalAccessEgress intermodalAE, Map<String, Provider<RoutingModule>> routingModuleProviders) {
-//		this.personAttributes = population == null ? null : population.getPersonAttributes();
 		this.intermodalAE = intermodalAE;
 
 		SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
@@ -58,7 +56,6 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 	}
 
 	public DefaultRaptorStopFinder(Population population, RaptorIntermodalAccessEgress intermodalAE, Map<String, RoutingModule> routingModules) {
-//		this.personAttributes = population == null ? null : population.getPersonAttributes();
 		this.intermodalAE = intermodalAE;
 		this.routingModules = routingModules;
 	}
@@ -112,18 +109,9 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 		SwissRailRaptorConfigGroup srrCfg = parameters.getConfig();
 		double x = facility.getCoord().getX();
 		double y = facility.getCoord().getY();
-		String personId = person.getId().toString();
 		List<InitialStop> initialStops = new ArrayList<>();
 		for (IntermodalAccessEgressParameterSet paramset : srrCfg.getIntermodalAccessEgressParameterSets()) {
 			String mode = paramset.getMode();
-			String overrideMode = null;
-//			if (mode.equals(TransportMode.walk) || mode.equals(TransportMode.transit_walk)) {
-				// yyyyyy Das passt nicht zusammen mit meinen Annahmen.  "walk" kann durchaus ein "network walk" sein; das wuerde hier dann
-				// uebergebuegelt werden.  Ist diese Abfrage denn noetig?  kai, jun'19
-				// Habe gerade mal "walk" an den entscheidenden Stellen durch "bike" ersetzt; damit funktioniert es dann wie vorgesehen.  Das
-				// impliziert erstmal, dass "walk" hier problematisch ist.  Ob die Weglassung woanders Probleme macht, weiss ich nicht.  kai, jun'19
-//				overrideMode = TransportMode.non_network_walk; 
-//			}
 			String linkIdAttribute = paramset.getLinkIdAttribute();
 			String personFilterAttribute = paramset.getPersonFilterAttribute();
 			String personFilterValue = paramset.getPersonFilterValue();
@@ -132,7 +120,6 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 
 			boolean personMatches = true;
 			if (personFilterAttribute != null) {
-//				Object attr = this.personAttributes.getAttribute(personId, personFilterAttribute);
 				Object attr = person.getAttributes().getAttribute( personFilterAttribute ) ;
 				String attrValue = attr == null ? null : attr.toString();
 				personMatches = personFilterValue.equals(attrValue);
@@ -187,13 +174,6 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 					if (routeParts == null) {
 						// the router for the access/egress mode could not find a route, skip that access/egress mode
 						continue;
-					}
-					if (overrideMode != null) {
-						for (PlanElement pe : routeParts) {
-							if (pe instanceof Leg) {
-								((Leg) pe).setMode(overrideMode);
-							}
-						}
 					}
 					if (stopFacility != stop) {
 						if (direction == Direction.ACCESS) {
