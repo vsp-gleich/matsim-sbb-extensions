@@ -99,8 +99,12 @@ public class SwissRailRaptor implements TransitRouter {
 		 * effectively excludes all direct walks) seems cleaner and better.
 		 * 
 		 * vsp-gleich sep'19 (after talking with KN)
+		 * 
+		 * 
+		 * foundRoute.parts.size() == 0 can happen if SwissRasilRaptorCore.createRaptorRoute() finds a trip made up of,
+		 * only 2 parts which consists only of an access and an egress leg without any pt leg inbetween.
 		 */
-        if (foundRoute == null || directWalk.getTotalCosts() * parameters.getDirectWalkFactor() < foundRoute.getTotalCosts()) {
+        if (foundRoute == null || foundRoute.parts.size() == 0 || directWalk.getTotalCosts() * parameters.getDirectWalkFactor() < foundRoute.getTotalCosts()) {
         	if (person == null) {
             	log.debug("No route found for person null: trip from x=" + fromFacility.getCoord().getX() + ",y=" + fromFacility.getCoord().getY() + " departure at " + departureTime + " to x=" + toFacility.getCoord().getX() + ",y=" + toFacility.getCoord().getY());
         	} else {
