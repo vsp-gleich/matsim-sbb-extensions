@@ -22,9 +22,7 @@ import org.matsim.core.config.ConfigWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author mrieser / SBB
@@ -147,6 +145,8 @@ public class SwissRailRaptorConfigGroupTest {
             IntermodalAccessEgressParameterSet paramset1 = new IntermodalAccessEgressParameterSet();
             paramset1.setMode(TransportMode.bike);
             paramset1.setMaxRadius(2000);
+            paramset1.setInitialSearchRadius(1500);
+            paramset1.setSearchExtensionRadius(1000);
             paramset1.setPersonFilterAttribute(null);
             paramset1.setStopFilterAttribute("bikeAndRail");
             paramset1.setStopFilterValue("true");
@@ -155,6 +155,8 @@ public class SwissRailRaptorConfigGroupTest {
             IntermodalAccessEgressParameterSet paramset2 = new IntermodalAccessEgressParameterSet();
             paramset2.setMode("sff");
             paramset2.setMaxRadius(5000);
+            paramset2.setInitialSearchRadius(3000);
+            paramset2.setSearchExtensionRadius(2000);
             paramset2.setPersonFilterAttribute("sff_user");
             paramset2.setPersonFilterValue("true");
             paramset2.setLinkIdAttribute("linkId_sff");
@@ -175,6 +177,8 @@ public class SwissRailRaptorConfigGroupTest {
         IntermodalAccessEgressParameterSet paramSet1 = parameterSets.get(0);
         Assert.assertEquals(TransportMode.bike, paramSet1.getMode());
         Assert.assertEquals(2000, paramSet1.getMaxRadius(), 0.0);
+        Assert.assertEquals(1500, paramSet1.getInitialSearchRadius(), 0.0);
+        Assert.assertEquals(1000, paramSet1.getSearchExtensionRadius(), 0.0);
         Assert.assertNull(paramSet1.getPersonFilterAttribute());
         Assert.assertNull(paramSet1.getPersonFilterValue());
         Assert.assertNull(paramSet1.getLinkIdAttribute());
@@ -184,6 +188,8 @@ public class SwissRailRaptorConfigGroupTest {
         IntermodalAccessEgressParameterSet paramSet2 = parameterSets.get(1);
         Assert.assertEquals("sff", paramSet2.getMode());
         Assert.assertEquals(5000, paramSet2.getMaxRadius(), 0.0);
+        Assert.assertEquals(3000, paramSet2.getInitialSearchRadius(), 0.0);
+        Assert.assertEquals(2000, paramSet2.getSearchExtensionRadius(), 0.0);
         Assert.assertEquals("sff_user", paramSet2.getPersonFilterAttribute());
         Assert.assertEquals("true", paramSet2.getPersonFilterValue());
         Assert.assertEquals("linkId_sff", paramSet2.getLinkIdAttribute());
