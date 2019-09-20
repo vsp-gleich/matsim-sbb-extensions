@@ -4,7 +4,6 @@ import ch.sbb.matsim.config.SwissRailRaptorConfigGroup;
 import ch.sbb.matsim.config.SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet;
 
 import org.apache.log4j.Logger;
-import org.jfree.util.Log;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Identifiable;
@@ -26,7 +25,6 @@ import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.Facility;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
-import org.matsim.utils.objectattributes.ObjectAttributes;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -36,21 +34,38 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
- * @author mrieser / Simunto GmbH
+ * This class chooses randomly exactly one of the available access / egress modes and returns the access / egress trips
+ * for all access / egress pt stops found for this mode.
+ * 
+ * {@link DefaultRaptorStopFinder} instead returns all available access / egress modes and returns access / egress trips
+ * for all of them. {@link SwissRailRaptorCore} later considers for each transit stop reachable by any of these access /
+ * egress modes only the access / egress mode with lowest cost (calculated by the router). However, in mobsim the real
+ * cost of that acess / egress mode might turn out higher. E.g. the router predicted walk cost 2.0 and drt cost 1.8
+ * based on a drt wait time of 2 min. However, in mobsim drt wait time turns out to be 10 min instead, leading to a
+ * higher cost for the access leg than the one predicted for walk (which if teleported has deterministic cost).
+ * Unfortunately the router of the access / egress might not be fully aware of the real costs experienced during mobsim
+ * and could consistently underestimate the access trip's cost. In that case the SwissRailRaptor intermodal router will
+ * always assume that using drt is superior to walk and therefore will never return an intermodal walk+pt trip instead
+ * of the drt+pt trip.
+ * 
+ * That issue can be solved by randomly selecting only one access / egress mode. So for each access / egress transit
+ * stop there is only one single access mode in {@link SwissRailRaptorCore} and that mode cannot be replaced by another
+ * access mode deemed less costly. Thereby, over the course of iterations the SwissRailRaptor will return sometimes a
+ * drt+pt trip and sometimes a walk+pt trip. So the agent obtains plans for both access / egress modes and tries out
+ * both and might select the walk+pt trip instead of the drt+trip if walking turns out to be less costly.
+ * 
+ * @author vsp-gleich
  */
 public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder {
 
-//	private final ObjectAttributes personAttributes;
 	private final RaptorIntermodalAccessEgress intermodalAE;
 	private final Map<String, RoutingModule> routingModules;
 	private static final Logger log = Logger.getLogger( SwissRailRaptorCore.class ) ;
 
 	@Inject
 	public RandomAccessEgressModeRaptorStopFinder(Population population, Config config, RaptorIntermodalAccessEgress intermodalAE, Map<String, Provider<RoutingModule>> routingModuleProviders) {
-//		this.personAttributes = population == null ? null : population.getPersonAttributes();
 		this.intermodalAE = intermodalAE;
 
 		SwissRailRaptorConfigGroup srrConfig = ConfigUtils.addOrGetModule(config, SwissRailRaptorConfigGroup.class);
@@ -64,7 +79,6 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 	}
 
 	public RandomAccessEgressModeRaptorStopFinder(Population population, RaptorIntermodalAccessEgress intermodalAE, Map<String, RoutingModule> routingModules) {
-//		this.personAttributes = population == null ? null : population.getPersonAttributes();
 		this.intermodalAE = intermodalAE;
 		this.routingModules = routingModules;
 	}
@@ -106,16 +120,7 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 		RaptorParameters parameters, SwissRailRaptorData data, double x, double y, String personId,
 		List<InitialStop> initialStops, IntermodalAccessEgressParameterSet paramset) {
 
-		double radius = paramset.getInitialSearchRadius();
 		String mode = paramset.getMode();
-		String overrideMode = null;
-//		if (mode.equals(TransportMode.walk) || mode.equals(TransportMode.transit_walk)) {
-			// yyyyyy Das passt nicht zusammen mit meinen Annahmen.  "walk" kann durchaus ein "network walk" sein; das wuerde hier dann
-			// uebergebuegelt werden.  Ist diese Abfrage denn noetig?  kai, jun'19
-			// Habe gerade mal "walk" an den entscheidenden Stellen durch "bike" ersetzt; damit funktioniert es dann wie vorgesehen.  Das
-			// impliziert erstmal, dass "walk" hier problematisch ist.  Ob die Weglassung woanders Probleme macht, weiss ich nicht.  kai, jun'19
-//			overrideMode = TransportMode.non_network_walk; 
-//		}
 		String linkIdAttribute = paramset.getLinkIdAttribute();
 		String personFilterAttribute = paramset.getPersonFilterAttribute();
 		String personFilterValue = paramset.getPersonFilterValue();
@@ -124,7 +129,6 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 
 		boolean personMatches = true;
 		if (personFilterAttribute != null) {
-//			Object attr = this.personAttributes.getAttribute(personId, personFilterAttribute);
 			Object attr = person.getAttributes().getAttribute( personFilterAttribute ) ;
 			String attrValue = attr == null ? null : attr.toString();
 			personMatches = personFilterValue.equals(attrValue);
@@ -138,12 +142,13 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 			} else {
 				filteredStopsQT = data.stopsQT;
 			}
-			Collection<TransitStopFacility> stopFacilities = filteredStopsQT.getDisk(x, y, paramset.getInitialSearchRadius());
+			double searchRadius = Math.min(paramset.getInitialSearchRadius(), paramset.getMaxRadius());
+			Collection<TransitStopFacility> stopFacilities = filteredStopsQT.getDisk(x, y, searchRadius);
 			if (stopFacilities.size() < 2) {
 				TransitStopFacility nearestStop = filteredStopsQT.getClosest(x, y);
 				double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
-				double newSearchRadius = Math.min(nearestDistance + paramset.getSearchExtensionRadius(), paramset.getRadius());
-				stopFacilities = filteredStopsQT.getDisk(x, y, newSearchRadius);
+				searchRadius = Math.min(nearestDistance + paramset.getSearchExtensionRadius(), paramset.getMaxRadius());
+				stopFacilities = filteredStopsQT.getDisk(x, y, searchRadius);
 			}
 
 			for (TransitStopFacility stop : stopFacilities) {
@@ -178,13 +183,6 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 				if (routeParts == null) {
 					// the router for the access/egress mode could not find a route, skip that access/egress mode
 					continue;
-				}
-				if (overrideMode != null) {
-					for (PlanElement pe : routeParts) {
-						if (pe instanceof Leg) {
-							((Leg) pe).setMode(overrideMode);
-						}
-					}
 				}
 				if (stopFacility != stop) {
 					if (direction == Direction.ACCESS) {

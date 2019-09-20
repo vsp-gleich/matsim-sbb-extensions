@@ -71,7 +71,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(300); // Includes no stops
+            walkAccess.setMaxRadius(300); // Includes no stops
             walkAccess.setInitialSearchRadius(300); // Includes no stops
             walkAccess.setSearchExtensionRadius(0);
             f0.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -108,7 +108,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(600); // Includes stop B
+            walkAccess.setMaxRadius(600); // Includes stop B
             walkAccess.setInitialSearchRadius(300); // Includes no stops
             walkAccess.setSearchExtensionRadius(0);
             f0.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -155,7 +155,7 @@ public class RaptorStopFinderTest {
             f1.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(300); // Includes no stops
             walkAccess.setSearchExtensionRadius(1100);
             f1.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -213,7 +213,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(600); // Includes stop B (not "walkAccessible")
+            walkAccess.setMaxRadius(600); // Includes stop B (not "walkAccessible")
             walkAccess.setInitialSearchRadius(600);  // Includes stop B (not "walkAccessible")
             walkAccess.setSearchExtensionRadius(0);
             walkAccess.setStopFilterAttribute("walkAccessible");
@@ -259,7 +259,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(600); // Includes stop B
+            walkAccess.setMaxRadius(600); // Includes stop B
             walkAccess.setInitialSearchRadius(300); // Includes no stops
             walkAccess.setSearchExtensionRadius(0);
             f0.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -311,7 +311,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(1100); // Includes stops B and C
+            walkAccess.setMaxRadius(1100); // Includes stops B and C
             walkAccess.setInitialSearchRadius(600); // Includes stop B (not "walkAccessible")
             walkAccess.setSearchExtensionRadius(0);
             walkAccess.setStopFilterAttribute("walkAccessible");
@@ -369,7 +369,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(600); // Includes stop B (not "walkAccessible")
             walkAccess.setSearchExtensionRadius(600); // Includes stop C and D
             walkAccess.setStopFilterAttribute("walkAccessible");
@@ -421,7 +421,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(300); // Includes no stops
+            walkAccess.setMaxRadius(300); // Includes no stops
             walkAccess.setInitialSearchRadius(300); // Includes no stops
             walkAccess.setSearchExtensionRadius(0);
             f0.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -458,7 +458,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(600); // Includes stop B
+            walkAccess.setMaxRadius(600); // Includes stop B
             walkAccess.setInitialSearchRadius(300); // Includes no stops
             walkAccess.setSearchExtensionRadius(0);
             f0.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -505,7 +505,7 @@ public class RaptorStopFinderTest {
             f1.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(300); // Includes no stops
             walkAccess.setSearchExtensionRadius(1100);
             f1.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -563,7 +563,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(600); // Includes stop B (not "walkAccessible")
+            walkAccess.setMaxRadius(600); // Includes stop B (not "walkAccessible")
             walkAccess.setInitialSearchRadius(600);  // Includes stop B (not "walkAccessible")
             walkAccess.setSearchExtensionRadius(0);
             walkAccess.setStopFilterAttribute("walkAccessible");
@@ -609,7 +609,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(600); // Includes stop B
+            walkAccess.setMaxRadius(600); // Includes stop B
             walkAccess.setInitialSearchRadius(300); // Includes no stops
             walkAccess.setSearchExtensionRadius(0);
             f0.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -661,7 +661,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(1100); // Includes stops B and C
+            walkAccess.setMaxRadius(1100); // Includes stops B and C
             walkAccess.setInitialSearchRadius(600); // Includes stop B (not "walkAccessible")
             walkAccess.setSearchExtensionRadius(0);
             walkAccess.setStopFilterAttribute("walkAccessible");
@@ -719,7 +719,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(600); // Includes stop B (not "walkAccessible")
             walkAccess.setSearchExtensionRadius(600); // Includes stop C and D
             walkAccess.setStopFilterAttribute("walkAccessible");
@@ -785,7 +785,7 @@ public class RaptorStopFinderTest {
             f1.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(600); // Should include stops B
             walkAccess.setSearchExtensionRadius(0);
             f1.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -833,7 +833,7 @@ public class RaptorStopFinderTest {
             f1.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(600); // Should include stops B
             walkAccess.setSearchExtensionRadius(600);
             f1.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -881,7 +881,7 @@ public class RaptorStopFinderTest {
             f1.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(600); // only includes B
+            walkAccess.setMaxRadius(600); // only includes B
             walkAccess.setInitialSearchRadius(600); // Should include stops B
             walkAccess.setSearchExtensionRadius(500); // includes C
             f1.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -936,7 +936,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(1100); // Should include stops C and B (not "walkAccessible")
             walkAccess.setSearchExtensionRadius(0);
             walkAccess.setStopFilterAttribute("walkAccessible");
@@ -991,7 +991,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(600); // Should include stops B
             walkAccess.setSearchExtensionRadius(1100); // Should include stops C and D
             walkAccess.setStopFilterAttribute("walkAccessible");
@@ -1043,7 +1043,7 @@ public class RaptorStopFinderTest {
             f1.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(600); // Should include stops B
             walkAccess.setSearchExtensionRadius(0);
             f1.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -1091,7 +1091,7 @@ public class RaptorStopFinderTest {
             f1.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(600); // Should include stops B
             walkAccess.setSearchExtensionRadius(600);
             f1.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -1139,7 +1139,7 @@ public class RaptorStopFinderTest {
             f1.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(600); // only includes B
+            walkAccess.setMaxRadius(600); // only includes B
             walkAccess.setInitialSearchRadius(600); // Should include stops B
             walkAccess.setSearchExtensionRadius(500); // includes C
             f1.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -1194,7 +1194,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(1100); // Should include stops C and B (not "walkAccessible")
             walkAccess.setSearchExtensionRadius(0);
             walkAccess.setStopFilterAttribute("walkAccessible");
@@ -1249,7 +1249,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(600); // Should include stops B
             walkAccess.setSearchExtensionRadius(1100); // Should include stops C and D
             walkAccess.setStopFilterAttribute("walkAccessible");
@@ -1317,7 +1317,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(1200); // Should include stops B and C
             walkAccess.setSearchExtensionRadius(2000);
             f0.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -1367,7 +1367,7 @@ public class RaptorStopFinderTest {
             f1.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(1200); // Should include stops B and C
             walkAccess.setSearchExtensionRadius(0);
             f1.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -1426,7 +1426,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(1600); // Should include stops B and C
             walkAccess.setSearchExtensionRadius(500);
             walkAccess.setStopFilterAttribute("walkAccessible");
@@ -1484,7 +1484,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(1600); // Should include stops B and C
             walkAccess.setSearchExtensionRadius(500);
             walkAccess.setStopFilterAttribute("walkAccessible");
@@ -1540,7 +1540,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(1200); // Should include stops B and C
             walkAccess.setSearchExtensionRadius(2000);
             f0.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -1590,7 +1590,7 @@ public class RaptorStopFinderTest {
             f1.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(1200); // Should include stops B and C
             walkAccess.setSearchExtensionRadius(0);
             f1.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -1649,7 +1649,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(1600); // Should include stops B and C
             walkAccess.setSearchExtensionRadius(500);
             walkAccess.setStopFilterAttribute("walkAccessible");
@@ -1707,7 +1707,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(1600); // Should include stops B and C
             walkAccess.setSearchExtensionRadius(500);
             walkAccess.setStopFilterAttribute("walkAccessible");
@@ -1776,7 +1776,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet zoomerAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             zoomerAccess.setMode("zoomer");
-            zoomerAccess.setRadius(2000); // should not be limiting factor
+            zoomerAccess.setMaxRadius(2000); // should not be limiting factor
             zoomerAccess.setInitialSearchRadius(1700); // Should include stops B and C and D
             zoomerAccess.setSearchExtensionRadius(0); // includes D (if neccessary)
             zoomerAccess.setStopFilterAttribute("zoomerAccessible");
@@ -1785,7 +1785,7 @@ public class RaptorStopFinderTest {
 
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet nonNetworkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             nonNetworkAccess.setMode(TransportMode.non_network_walk);
-            nonNetworkAccess.setRadius(0); // should not be limiting factor
+            nonNetworkAccess.setMaxRadius(0); // should not be limiting factor
             nonNetworkAccess.setInitialSearchRadius(0); // Should include stops B and C and D
             nonNetworkAccess.setSearchExtensionRadius(0); // includes D (if neccessary)
             f0.srrConfig.addIntermodalAccessEgress(nonNetworkAccess);
@@ -1845,7 +1845,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet zoomerAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             zoomerAccess.setMode("zoomer");
-            zoomerAccess.setRadius(2000); // should not be limiting factor
+            zoomerAccess.setMaxRadius(2000); // should not be limiting factor
             zoomerAccess.setInitialSearchRadius(1100); // Should include stops B and C and D
             zoomerAccess.setSearchExtensionRadius(600); // includes D (if neccessary)
             zoomerAccess.setStopFilterAttribute("zoomerAccessible");
@@ -1854,7 +1854,7 @@ public class RaptorStopFinderTest {
 
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(0); // should not be limiting factor
+            walkAccess.setMaxRadius(0); // should not be limiting factor
             walkAccess.setInitialSearchRadius(0); // Should include stops B and C and D
             walkAccess.setSearchExtensionRadius(0); // includes D (if neccessary)
             f0.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -1920,7 +1920,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet walkAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             walkAccess.setMode(TransportMode.non_network_walk);
-            walkAccess.setRadius(10000000); // should not be limiting factor
+            walkAccess.setMaxRadius(10000000); // should not be limiting factor
             walkAccess.setInitialSearchRadius(1200); // Should include stops B and C
             walkAccess.setSearchExtensionRadius(2000);
             f0.srrConfig.addIntermodalAccessEgress(walkAccess);
@@ -1928,7 +1928,7 @@ public class RaptorStopFinderTest {
             f0.srrConfig.setUseIntermodalAccessEgress(true);
             SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet bikeAccess = new SwissRailRaptorConfigGroup.IntermodalAccessEgressParameterSet();
             bikeAccess.setMode(TransportMode.bike);
-            bikeAccess.setRadius(10000000); // should not be limiting factor
+            bikeAccess.setMaxRadius(10000000); // should not be limiting factor
             bikeAccess.setInitialSearchRadius(1200); // Should include stops B and C
             bikeAccess.setSearchExtensionRadius(2000);
             f0.srrConfig.addIntermodalAccessEgress(bikeAccess);
