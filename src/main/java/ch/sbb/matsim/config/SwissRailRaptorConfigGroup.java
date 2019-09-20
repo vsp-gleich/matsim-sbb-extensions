@@ -421,11 +421,6 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
         @StringSetter(PARAM_MAX_RADIUS)
         public void setMaxRadius(double maxRadius) {
             this.maxRadius = maxRadius;
-            // check for consistency
-            if (maxRadius < initialSearchRadius) {
-            	log.info("radius is smaller than initialSearchRadius. Setting initialSearchRadius:=radius");
-            	initialSearchRadius = maxRadius;
-            }
         }
         
         @StringGetter(PARAM_INITIAL_SEARCH_RADIUS)
@@ -435,13 +430,7 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
 
         @StringSetter(PARAM_INITIAL_SEARCH_RADIUS)
         public void setInitialSearchRadius(double initialSearchRadius) {
-            // check for consistency
-        	if (initialSearchRadius <= maxRadius) {
-                this.initialSearchRadius = initialSearchRadius;
-        	} else {
-            	log.info("radius is smaller than initialSearchRadius. Setting initialSearchRadius:=radius");
-            	initialSearchRadius = maxRadius;
-        	}
+            this.initialSearchRadius = initialSearchRadius;
         }
         
         @StringGetter(PARAM_SEARCH_EXTENSION_RADIUS)

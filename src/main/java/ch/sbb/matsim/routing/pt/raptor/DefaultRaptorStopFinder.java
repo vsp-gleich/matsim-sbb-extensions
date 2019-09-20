@@ -146,12 +146,13 @@ public class DefaultRaptorStopFinder implements RaptorStopFinder {
 				} else {
 					filteredStopsQT = data.stopsQT;
 				}
-				Collection<TransitStopFacility> stopFacilities = filteredStopsQT.getDisk(x, y, paramset.getInitialSearchRadius());
+				double searchRadius = Math.min(paramset.getInitialSearchRadius(), paramset.getMaxRadius());
+				Collection<TransitStopFacility> stopFacilities = filteredStopsQT.getDisk(x, y, searchRadius);
 				if (stopFacilities.size() < 2) {
 					TransitStopFacility nearestStop = filteredStopsQT.getClosest(x, y);
 					double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
-					double newSearchRadius = Math.min(nearestDistance + paramset.getSearchExtensionRadius(), paramset.getMaxRadius());
-					stopFacilities = filteredStopsQT.getDisk(x, y, newSearchRadius);
+					searchRadius = Math.min(nearestDistance + paramset.getSearchExtensionRadius(), paramset.getMaxRadius());
+					stopFacilities = filteredStopsQT.getDisk(x, y, searchRadius);
 				}
 				
 				for (TransitStopFacility stop : stopFacilities) {
