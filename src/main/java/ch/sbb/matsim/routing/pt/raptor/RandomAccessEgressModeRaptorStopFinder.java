@@ -142,7 +142,7 @@ public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder 
 			if (stopFacilities.size() < 2) {
 				TransitStopFacility nearestStop = filteredStopsQT.getClosest(x, y);
 				double nearestDistance = CoordUtils.calcEuclideanDistance(facility.getCoord(), nearestStop.getCoord());
-				double newSearchRadius = Math.min(nearestDistance + paramset.getSearchExtensionRadius(), paramset.getRadius());
+				double newSearchRadius = Math.min(nearestDistance + paramset.getSearchExtensionRadius(), paramset.getMaxRadius());
 				stopFacilities = filteredStopsQT.getDisk(x, y, newSearchRadius);
 			}
 

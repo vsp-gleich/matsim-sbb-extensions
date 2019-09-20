@@ -380,7 +380,7 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
         private static final String TYPE = "intermodalAccessEgress";
 
         private static final String PARAM_MODE = "mode";
-        private static final String PARAM_RADIUS = "radius";
+        private static final String PARAM_MAX_RADIUS = "maxRadius";
         private static final String PARAM_INITIAL_SEARCH_RADIUS = "initialSearchRadius";
         private static final String PARAM_SEARCH_EXTENSION_RADIUS = "searchExtensionRadius";
         private static final String PARAM_LINKID_ATTRIBUTE = "linkIdAttribute";
@@ -390,7 +390,7 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
         private static final String PARAM_STOP_FILTER_VALUE = "stopFilterValue";
 
         private String mode;
-        private double radius;
+        private double maxRadius;
         private double initialSearchRadius;
         private double searchExtensionRadius;
         private String linkIdAttribute;
@@ -413,18 +413,18 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
             this.mode = mode;
         }
 
-        @StringGetter(PARAM_RADIUS)
-        public double getRadius() {
-            return radius;
+        @StringGetter(PARAM_MAX_RADIUS)
+        public double getMaxRadius() {
+            return maxRadius;
         }
 
-        @StringSetter(PARAM_RADIUS)
-        public void setRadius(double radius) {
-            this.radius = radius;
+        @StringSetter(PARAM_MAX_RADIUS)
+        public void setMaxRadius(double maxRadius) {
+            this.maxRadius = maxRadius;
             // check for consistency
-            if (radius < initialSearchRadius) {
+            if (maxRadius < initialSearchRadius) {
             	log.info("radius is smaller than initialSearchRadius. Setting initialSearchRadius:=radius");
-            	initialSearchRadius = radius;
+            	initialSearchRadius = maxRadius;
             }
         }
         
@@ -436,11 +436,11 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
         @StringSetter(PARAM_INITIAL_SEARCH_RADIUS)
         public void setInitialSearchRadius(double initialSearchRadius) {
             // check for consistency
-        	if (initialSearchRadius <= radius) {
+        	if (initialSearchRadius <= maxRadius) {
                 this.initialSearchRadius = initialSearchRadius;
         	} else {
             	log.info("radius is smaller than initialSearchRadius. Setting initialSearchRadius:=radius");
-            	initialSearchRadius = radius;
+            	initialSearchRadius = maxRadius;
         	}
         }
         
@@ -512,7 +512,7 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
             map.put(PARAM_STOP_FILTER_VALUE, "Only stops where the filter attribute has the value specified here will be considered as access or egress stops.");
             map.put(PARAM_PERSON_FILTER_ATTRIBUTE, "Name of the person attribute used to figure out if this access/egress mode is available to the person.");
             map.put(PARAM_PERSON_FILTER_VALUE, "Only persons where the filter attribute has the value specified here can use this mode for access or egress. The attribute should be of type String.");
-            map.put(PARAM_RADIUS, "Radius from the origin / destination coord in which transit stops are accessible by this mode.");
+            map.put(PARAM_MAX_RADIUS, "Radius from the origin / destination coord in which transit stops are accessible by this mode.");
             map.put(PARAM_INITIAL_SEARCH_RADIUS, "Radius from the origin / destination coord in which transit stops are searched. Only if less than 2 transit stops are found the search radius is increased step-wise until the maximum search radius set in param radius is reached.");
             map.put(PARAM_SEARCH_EXTENSION_RADIUS, "If less than 2 stops were found in initialSearchRadius take the distance of the closest transit stop and add this extension radius to search again.The search radius will not exceed the maximum search radius set in param radius.");
             return map;

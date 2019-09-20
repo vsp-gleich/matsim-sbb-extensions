@@ -125,12 +125,12 @@ public class SwissRailRaptorModuleTest {
         f.srrConfig.setUseIntermodalAccessEgress(true);
         IntermodalAccessEgressParameterSet walkAccess = new IntermodalAccessEgressParameterSet();
         walkAccess.setMode(TransportMode.walk);
-        walkAccess.setRadius(1000);
+        walkAccess.setMaxRadius(1000);
         walkAccess.setInitialSearchRadius(1000);
         f.srrConfig.addIntermodalAccessEgress(walkAccess);
         IntermodalAccessEgressParameterSet bikeAccess = new IntermodalAccessEgressParameterSet();
         bikeAccess.setMode(TransportMode.bike);
-        bikeAccess.setRadius(1500);
+        bikeAccess.setMaxRadius(1500);
         bikeAccess.setInitialSearchRadius(1500);
         bikeAccess.setStopFilterAttribute("bikeAccessible");
         bikeAccess.setLinkIdAttribute("accessLinkId_bike");
