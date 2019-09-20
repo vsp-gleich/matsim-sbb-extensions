@@ -36,7 +36,27 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author mrieser / Simunto GmbH
+ * This class chooses randomly exactly one of the available access / egress modes and returns the access / egress trips
+ * for all access / egress pt stops found for this mode.
+ * 
+ * {@link DefaultRaptorStopFinder} instead returns all available access / egress modes and returns access / egress trips
+ * for all of them. {@link SwissRailRaptorCore} later considers for each transit stop reachable by any of these access /
+ * egress modes only the access / egress mode with lowest cost (calculated by the router). However, in mobsim the real
+ * cost of that acess / egress mode might turn out higher. E.g. the router predicted walk cost 2.0 and drt cost 1.8
+ * based on a drt wait time of 2 min. However, in mobsim drt wait time turns out to be 10 min instead, leading to a
+ * higher cost for the access leg than the one predicted for walk (which if teleported has deterministic cost).
+ * Unfortunately the router of the access / egress might not be fully aware of the real costs experienced during mobsim
+ * and could consistently underestimate the access trip's cost. In that case the SwissRailRaptor intermodal router will
+ * always assume that using drt is superior to walk and therefore will never return an intermodal walk+pt trip instead
+ * of the drt+pt trip.
+ * 
+ * That issue can be solved by randomly selecting only one access / egress mode. So for each access / egress transit
+ * stop there is only one single access mode in {@link SwissRailRaptorCore} and that mode cannot be replaced by another
+ * access mode deemed less costly. Thereby, over the course of iterations the SwissRailRaptor will return sometimes a
+ * drt+pt trip and sometimes a walk+pt trip. So the agent obtains plans for both access / egress modes and tries out
+ * both and might select the walk+pt trip instead of the drt+trip if walking turns out to be less costly.
+ * 
+ * @author vsp-gleich
  */
 public class RandomAccessEgressModeRaptorStopFinder implements RaptorStopFinder {
 
