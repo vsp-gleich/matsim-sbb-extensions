@@ -391,8 +391,8 @@ public class SwissRailRaptorConfigGroup extends ReflectiveConfigGroup {
 
         private String mode;
         private double maxRadius;
-        private double initialSearchRadius;
-        private double searchExtensionRadius;
+        private double initialSearchRadius = Double.POSITIVE_INFINITY;
+        private double searchExtensionRadius = 1000.0;
         private String linkIdAttribute;
         private String personFilterAttribute;
         private String personFilterValue;
