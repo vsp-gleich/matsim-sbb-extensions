@@ -810,15 +810,17 @@ public class SwissRailRaptorIntermodalTest {
     /**
      * Possible access/egress modes are walk and car. The radius for car encompasses the pt stop, and the car and there
      * are no filter attributes restricting an access/egress using car. However, the links between the fromFacility and the
-     * pt stop do not have car as an allowable mode. Therefore, the car router should return null for the route, and the
+     * pt stop have a freespeed of 0. Therefore, the car router should return null for the route, and the
      * Raptor should assign a transit_walk to the agent between the fromFacility and the toFacility.
+     *
+     * so
      */
     @Test
     public void testIntermodalTrip_accessModeRouterReturnsNull() {
         IntermodalCarFixture f = new IntermodalCarFixture();
 
-        Facility fromFac = new FakeFacility(new Coord(0 , 0), Id.create("from", Link.class)); // stops B or E, B is intermodal and triggered the bug
-        Facility toFac = new FakeFacility(new Coord(2200, 0), Id.create("to", Link.class)); // stop F
+        Facility fromFac = new FakeFacility(new Coord(0 , 0), Id.create("from", Link.class)); // node a
+        Facility toFac = new FakeFacility(new Coord(2200, 0), Id.create("to", Link.class));
 
         SwissRailRaptorData data = SwissRailRaptorData.create(f.scenario.getTransitSchedule(), RaptorUtils.createStaticConfig(f.config), f.scenario.getNetwork());
         DefaultRaptorStopFinder stopFinder = new DefaultRaptorStopFinder(null, new DefaultRaptorIntermodalAccessEgress(), f.routingModules);
@@ -1111,14 +1113,14 @@ public class SwissRailRaptorIntermodalTest {
             Link linkCB = nf.createLink(Id.create("CB", Link.class), nodeC, nodeB);
             Link linkCC = nf.createLink(Id.create("CC", Link.class), nodeC, nodeC);
 
-            Set<String> modes = new HashSet<>(Arrays.asList("car2"));
-//            linkAA.setAllowedModes(modes);
-//            linkAB.setAllowedModes(modes);
-//            linkBA.setAllowedModes(modes);
-//            linkBB.setAllowedModes(modes);
-            linkBC.setAllowedModes(modes);
-            linkCB.setAllowedModes(modes);
-            linkCC.setAllowedModes(modes);
+//            Set<String> modes = new HashSet<>(Arrays.asList("car2"));
+////            linkAA.setAllowedModes(modes);
+////            linkAB.setAllowedModes(modes);
+////            linkBA.setAllowedModes(modes);
+////            linkBB.setAllowedModes(modes);
+//            linkBC.setAllowedModes(modes);
+//            linkCB.setAllowedModes(modes);
+//            linkCC.setAllowedModes(modes);
 
             network.addLink(linkAA);
             network.addLink(linkAB);
@@ -1129,8 +1131,8 @@ public class SwissRailRaptorIntermodalTest {
             network.addLink(linkCB);
 
             for (Link i : network.getLinks().values()) {
-                i.setCapacity(1000.);
-                i.setFreespeed(50./3.6);
+                i.setCapacity(1000);
+                i.setFreespeed(0./3.6); // yyy jr --  this is the only way to prevent agent from using car2
                 i.setLength(1000.);
             }
 
